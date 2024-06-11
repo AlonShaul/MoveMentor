@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://movementor-1.onrender.com'],
+  origin: ['http://localhost:3000', 'https://movementor.onrender.com'],
   credentials: true, // Allow credentials
 }));
 
