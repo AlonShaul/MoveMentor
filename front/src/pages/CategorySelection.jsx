@@ -10,8 +10,8 @@ const CategorySelection = () => {
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
-  const { categories } = useCategories();
   const apiUrl = useApi();
+  const { categories } = useCategories();
   const navigate = useNavigate();
 
   const handleGeneratePlan = async () => {

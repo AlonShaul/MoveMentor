@@ -1,12 +1,11 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const ApiContext = createContext();
 
 export const useApi = () => useContext(ApiContext);
 
 export const ApiProvider = ({ children }) => {
-  const apiUrl = 'https://movementor-1.onrender.com';
-  console.log(apiUrl);
+  const [apiUrl] = useState('http://localhost:8800');
 
   return (
     <ApiContext.Provider value={apiUrl}>

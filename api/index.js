@@ -10,18 +10,21 @@ import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import postRoutes from './routes/posts.js';
 import userRoutes from './routes/users.js';
-import planRoutes from './routes/planRoutes.js'; // Add this line
+import planRoutes from './routes/planRoutes.js';
 
 dotenv.config();
 
+// Get __dirname equivalent in ES module scope
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000', // Ensure this matches your frontend URL
+  origin: ['http://localhost:3000', 'https://movementor-1.onrender.com'],
+  credentials: true, // Allow credentials
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -42,15 +45,12 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-const db = process.env.MONGO_URL ? process.env.MONGO_URL : 'mongodb://localhost:27017/blog';
-mongoose.connect(db, {
+mongoose.connect(process.env.MONGO_URL || 'mongodb://localhost:27017/blog', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
 .then(() => {
   console.log('MongoDB connected');
-  console.log(db);
-
 })
 .catch((err) => {
   console.error('MongoDB connection error:', err);
@@ -64,7 +64,7 @@ app.post('/api/upload', upload.single('file'), function (req, res) {
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/plans', planRoutes); // Add this line
+app.use('/api/plans', planRoutes);
 
 app.listen(process.env.PORT || 8800, () => {
   console.log(`Server running on port ${process.env.PORT || 8800}`);

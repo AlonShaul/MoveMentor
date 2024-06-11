@@ -7,6 +7,7 @@ export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
+  const apiUrl = useApi();
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
@@ -20,20 +21,21 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (inputs) => {
     try {
-      const res = await axios.post(useApi+'/api/auth/login', inputs);
+      const res = await axios.post(`${apiUrl}/api/auth/login`, inputs);
       setCurrentUser(res.data.user);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
     } catch (err) {
+      console.log(apiUrl)
       console.error('Login failed:', err.response ? err.response.data : err.message);
       throw err;
     }
   };
-  
+
   const logout = async () => {
     try {
-      await axios.post(useApi+'/api/auth/logout');
+      await axios.post(`${apiUrl}/api/auth/logout`);
       setCurrentUser(null);
       localStorage.removeItem('user');
       localStorage.removeItem('token');
