@@ -5,7 +5,8 @@ const ApiContext = createContext();
 export const useApi = () => useContext(ApiContext);
 
 export const ApiProvider = ({ children }) => {
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8800';
+  const apiUrl = 'https://movementor-1.onrender.com';
+  console.log(apiUrl);
 
   return (
     <ApiContext.Provider value={apiUrl}>
