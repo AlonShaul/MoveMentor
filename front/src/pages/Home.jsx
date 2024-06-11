@@ -11,10 +11,11 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true);
   const [postsPerPage, setPostsPerPage] = useState(2);
 
-  const cat = useLocation().search;
+  const location = useLocation();
   const apiUrl = useApi();
   const { currentUser } = useAuth();
 
+  const cat = new URLSearchParams(location.search).get('cat');
   useEffect(() => {
     const updatePostsPerPage = () => {
       if (window.innerWidth >= 768) {
@@ -33,10 +34,13 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(`${apiUrl}/api/posts${cat}`);
-        setPosts(res.data);
-        setVisiblePosts(res.data.slice(0, postsPerPage));
-        setHasMore(res.data.length > postsPerPage);
+        const res = await axios.get(`${apiUrl}/api/posts`, {
+          params: { category: cat }
+        });
+        const filteredPosts = cat ? res.data.filter((post) => post.cat === cat) : res.data;
+        setPosts(filteredPosts);
+        setVisiblePosts(filteredPosts.slice(0, postsPerPage));
+        setHasMore(filteredPosts.length > postsPerPage);
       } catch (err) {
         console.log(err);
       }

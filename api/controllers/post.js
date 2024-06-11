@@ -26,7 +26,15 @@ export const generateExercisePlan = async (req, res) => {
 
 export const getPosts = async (req, res) => {
   try {
-    const posts = await Post.find();
+    const category = req.query.category;
+    let posts;
+    
+    if (category) {
+      posts = await Post.find({ cat: category });
+    } else {
+      posts = await Post.find();
+    }
+    
     res.status(200).json(posts);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -66,8 +74,6 @@ export const addPost = async (req, res) => {
   }
 };
 
-
-
 export const updatePost = async (req, res) => {
   try {
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -76,7 +82,6 @@ export const updatePost = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 export const deletePost = async (req, res) => {
   try {

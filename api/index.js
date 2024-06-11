@@ -66,6 +66,26 @@ app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/plans', planRoutes);
 
+// New route for fetching posts by category
+app.get('/api/posts', async (req, res) => {
+  try {
+    const category = req.query.category;
+    let posts;
+    
+    if (category) {
+      posts = await Post.find({ category });
+    } else {
+      posts = await Post.find();
+    }
+    
+    res.json(posts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+});
+
+
 app.listen(process.env.PORT || 8800, () => {
   console.log(`Server running on port ${process.env.PORT || 8800}`);
 });
