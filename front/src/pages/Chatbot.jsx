@@ -1,6 +1,5 @@
 // Chatbot.js
 import React, { useEffect } from 'react';
-import { Widget, addResponseMessage } from 'react-chat-widget';
 import 'react-chat-widget/lib/styles.css';
 
 function Chatbot() {
@@ -27,11 +26,7 @@ function Chatbot() {
   };
 
   return (
-    <Widget
-      handleNewUserMessage={handleNewUserMessage}
-      title="Chatbot"
-      subtitle="Ask me anything"
-    />
+    <></>
   );
 }
 
