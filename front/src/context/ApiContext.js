@@ -5,7 +5,8 @@ const ApiContext = createContext();
 export const useApi = () => useContext(ApiContext);
 
 export const ApiProvider = ({ children }) => {
-  const [apiUrl] = useState('http://localhost:8800');
+  let url = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : 'http://localhost:8800' 
+  const [apiUrl] = useState(`${url}`);
 
   return (
     <ApiContext.Provider value={apiUrl}>
