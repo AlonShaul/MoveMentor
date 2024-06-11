@@ -9,6 +9,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const apiUrl = useApi();
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -16,18 +17,20 @@ export const AuthProvider = ({ children }) => {
     if (storedUser && token) {
       setCurrentUser(storedUser);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axios.defaults.withCredentials = true;
     }
+    setLoading(false); // Set loading to false after checking
   }, []);
 
   const login = async (inputs) => {
     try {
+      axios.defaults.withCredentials = true;
       const res = await axios.post(`${apiUrl}/api/auth/login`, inputs);
       setCurrentUser(res.data.user);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
     } catch (err) {
-      console.log(apiUrl)
       console.error('Login failed:', err.response ? err.response.data : err.message);
       throw err;
     }
@@ -46,7 +49,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout }}>
+    <AuthContext.Provider value={{ currentUser, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

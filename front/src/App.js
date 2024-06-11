@@ -8,10 +8,11 @@ import Single from "./pages/Single";
 import UserProfile from "./pages/UserProfile";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import CategorySelection from "./pages/CategorySelection"; // Import the new component
+import CategorySelection from "./pages/CategorySelection";
 import { AuthProvider } from "./context/authContext";
 import { CategoryProvider } from "./context/CategoryContext";
 import { ApiProvider } from "./context/ApiContext";
+import PrivateRoute from "./components/PrivateRoute"; // Adjust import path
 import "./style.scss";
 
 const Layout = () => {
@@ -31,11 +32,46 @@ const router = createBrowserRouter([
     path: "/",
     element: <Layout />,
     children: [
-      { path: "/", element: <Home /> },
-      { path: "/post/:id", element: <Single /> },
-      { path: "/write", element: <Write /> },
-      { path: "/profile", element: <UserProfile /> },
-      { path: "/select-category", element: <CategorySelection /> },
+      {
+        path: "/",
+        element: (
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/post/:id",
+        element: (
+          <PrivateRoute>
+            <Single />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/write",
+        element: (
+          <PrivateRoute>
+            <Write />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/profile",
+        element: (
+          <PrivateRoute>
+            <UserProfile />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/select-category",
+        element: (
+          <PrivateRoute>
+            <CategorySelection />
+          </PrivateRoute>
+        ),
+      },
     ],
   },
   { path: "/register", element: <Register /> },
