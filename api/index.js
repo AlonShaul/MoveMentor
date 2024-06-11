@@ -42,7 +42,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-mongoose.connect('mongodb://localhost:27017/blog', {
+const db = process.env.MONGODB_URI ? process.env.MONGODB_URI : 'mongodb://localhost:27017/blog';
+
+mongoose.connect(db, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 // import { useAuth } from '../context/authContext';
+import { apiUrl } from '..context/ApiContext'
 
 const ExerciseBot = () => {
 //   const { currentUser } = useAuth();
@@ -9,7 +10,7 @@ const ExerciseBot = () => {
 
   const handleGeneratePlan = async () => {
     try {
-      const response = await axios.get('http://localhost:8800/api/posts/plan/generate', {
+      const response = await axios.get( apiUrl +'api/posts/plan/generate', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
