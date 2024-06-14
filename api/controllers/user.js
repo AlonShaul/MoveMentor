@@ -1,10 +1,6 @@
 // api/controllers/users.js
-
 import User from '../models/user.js';
 import Plan from '../models/plan.js'; // Assuming you have a plan model
-
-import User from '../models/user.js';
-import Plan from '../models/plan.js';
 
 export const getUserDetails = async (req, res) => {
   try {
