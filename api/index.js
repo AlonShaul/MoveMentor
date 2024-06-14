@@ -11,19 +11,21 @@ import authRoutes from './routes/auth.js';
 import postRoutes from './routes/posts.js';
 import userRoutes from './routes/users.js';
 import planRoutes from './routes/planRoutes.js';
+import { authMiddleware } from './middleware/auth.js'; // Import authentication middleware
+import { WebhookClient } from 'dialogflow-fulfillment';
+import { generatePlan } from './controllers/plan.js';
 
 dotenv.config();
 
-// Get __dirname equivalent in ES module scope
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://movementor.onrender.com' , 'https://movementor-1.onrender.com'],
+  origin: ['http://localhost:3000', 'https://movementor.onrender.com', 'https://movementor-1.onrender.com'],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true, // Allow credentials
+  credentials: true,
 }));
 
 app.use(express.json());
@@ -67,25 +69,40 @@ app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/plans', planRoutes);
 
-// New route for fetching posts by category
-app.get('/api/posts', async (req, res) => {
-  try {
-    const category = req.query.category;
-    let posts;
-    
-    if (category) {
-      posts = await Post.find({ category });
-    } else {
-      posts = await Post.find();
-    }
-    
-    res.json(posts);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server Error");
-  }
-});
+// Dialogflow webhook route
+app.post('/webhook', express.json(), authMiddleware, async (req, res) => {
+  const agent = new WebhookClient({ request: req, response: res });
 
+  function welcome(agent) {
+    agent.add(`Welcome to my agent!`);
+  }
+
+  function fallback(agent) {
+    agent.add(`I didn't understand`);
+    agent.add(`I'm sorry, can you try again?`);
+  }
+
+  async function handleGeneratePlan(agent) {
+    const category = agent.parameters.category;
+    const adaptedForThirdAge = agent.parameters.adaptedForThirdAge;
+    const adaptedForChildren = agent.parameters.adaptedForChildren;
+    const duration = agent.parameters.duration;
+
+    req.query = { category, adaptedForThirdAge, adaptedForChildren, duration, userId: req.user._id };
+    const response = await generatePlan(req, res);
+    if (res.statusCode === 201) {
+      agent.add('Plan generated successfully.');
+    } else {
+      agent.add('Failed to generate the plan.');
+    }
+  }
+
+  let intentMap = new Map();
+  intentMap.set('Default Welcome Intent', welcome);
+  intentMap.set('Default Fallback Intent', fallback);
+  intentMap.set('Generate Plan', handleGeneratePlan);
+  agent.handleRequest(intentMap);
+});
 
 app.listen(process.env.PORT || 8800, () => {
   console.log(`Server running on port ${process.env.PORT || 8800}`);

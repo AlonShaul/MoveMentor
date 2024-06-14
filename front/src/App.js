@@ -6,6 +6,7 @@ import Write from "./pages/Write";
 import Home from "./pages/Home";
 import Single from "./pages/Single";
 import UserProfile from "./pages/UserProfile";
+import GeneratePlan from "./pages/GeneratePlan"; // Import the GeneratePlan component
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CategorySelection from "./pages/CategorySelection";
@@ -13,6 +14,7 @@ import { AuthProvider } from "./context/authContext";
 import { CategoryProvider } from "./context/CategoryContext";
 import { ApiProvider } from "./context/ApiContext";
 import PrivateRoute from "./components/PrivateRoute"; // Adjust import path
+import ChatWidget from "./components/ChatWidget"; // Import ChatWidget component
 import "./style.scss";
 
 const Layout = () => {
@@ -22,6 +24,7 @@ const Layout = () => {
       <div className="flex-grow">
         <Outlet />
       </div>
+      <ChatWidget /> {/* Add ChatWidget here */}
       <Footer />
     </div>
   );
@@ -69,6 +72,14 @@ const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <CategorySelection />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/generate-plan", // Add this route for GeneratePlan
+        element: (
+          <PrivateRoute>
+            <GeneratePlan />
           </PrivateRoute>
         ),
       },

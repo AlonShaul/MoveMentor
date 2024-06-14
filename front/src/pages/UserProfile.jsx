@@ -8,7 +8,7 @@ const UserProfile = () => {
   const { currentUser } = useContext(AuthContext);
   const apiUrl = useApi();
   const [userDetails, setUserDetails] = useState(null);
-  const [plans, setPlans] = useState([]);
+  const [lastPlan, setLastPlan] = useState(null);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -24,14 +24,16 @@ const UserProfile = () => {
       }
     };
 
-    const fetchUserPlans = async () => {
+    const fetchLastUserPlan = async () => {
       try {
         const res = await axios.get(`${apiUrl}/api/users/${currentUser._id}/plans`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        setPlans(res.data);
+        if (res.data.length > 0) {
+          setLastPlan(res.data[0]); // Set the most recent plan
+        }
       } catch (err) {
         console.log(err);
       }
@@ -39,7 +41,7 @@ const UserProfile = () => {
 
     if (currentUser) {
       fetchUserDetails();
-      fetchUserPlans();
+      fetchLastUserPlan();
     }
   }, [currentUser, apiUrl]);
 
@@ -60,17 +62,25 @@ const UserProfile = () => {
         <p><strong>Role:</strong> {userDetails.role}</p>
       </div>
       <div className="user-plans bg-white p-4 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold mb-4">Completed Plans</h2>
-        {plans.length === 0 ? (
-          <p>No plans completed yet.</p>
+        <h2 className="text-xl font-bold mb-4">Last Generated Plan</h2>
+        {lastPlan ? (
+          <div className="plan mb-4">
+            <p><strong>Category:</strong> {lastPlan.category}</p>
+            <p><strong>Total Duration:</strong> {lastPlan.exercises.reduce((total, exercise) => total + (exercise.duration.hours * 60 + exercise.duration.minutes + exercise.duration.seconds / 60), 0)} minutes</p>
+            {lastPlan.exercises.map((exercise, index) => (
+              <div key={index} className="border border-gray-300 p-4 rounded mb-4">
+                <h3 className="text-lg font-semibold">{exercise.title}</h3>
+                <p dangerouslySetInnerHTML={{ __html: exercise.explanation }}></p>
+                {exercise.videoUrl && (
+                  <a href={exercise.videoUrl} className="text-blue-500 hover:underline">
+                    Video
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
         ) : (
-          plans.map(plan => (
-            <div key={plan._id} className="plan mb-4">
-              <p><strong>Plan:</strong> {plan.title}</p>
-              <p><strong>Rating:</strong> {plan.rating || 'Not rated yet'}</p>
-              <Link to={`/post/${plan.postId}`} className="text-blue-500">View Plan</Link>
-            </div>
-          ))
+          <p>No plans generated yet.</p>
         )}
       </div>
       <div className="mt-8">

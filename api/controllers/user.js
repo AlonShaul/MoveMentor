@@ -3,6 +3,9 @@
 import User from '../models/user.js';
 import Plan from '../models/plan.js'; // Assuming you have a plan model
 
+import User from '../models/user.js';
+import Plan from '../models/plan.js';
+
 export const getUserDetails = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -17,12 +20,15 @@ export const getUserDetails = async (req, res) => {
 
 export const getUserPlans = async (req, res) => {
   try {
-    const plans = await Plan.find({ userId: req.params.id }).populate('postId');
+    const userId = req.params.id;
+    const plans = await Plan.find({ userId }).sort({ createdAt: -1 }).limit(1); // Fetch the most recent plan
     res.status(200).json(plans);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    console.error('Error fetching user plans:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 export const saveUserPlan = async (req, res) => {
   try {

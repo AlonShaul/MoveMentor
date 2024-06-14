@@ -38,7 +38,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="navbar bg-gradient-to-r from-blue-900 to-blue-600 text-white fixed w-full z-10 top-0 h-20">
+    <div className="navbar bg-gradient-to-r from-blue-900 to-blue-600 text-white fixed w-full z-10 top-0 h-20 ">
       <div className="container mx-auto px-2 flex justify-between items-center h-full"> {/* Changed px-4 to px-2 to move the logo left */}
         <div className="flex items-center space-x-4">
           <div className="logo">
@@ -67,7 +67,7 @@ const Navbar = () => {
           <Link className="link" to="/about" key="about">
             <h6 className="capitalize">אודות</h6>
           </Link>
-          <Link className="link" to="/plan" key="plan">
+          <Link className="link" to="/generate-plan" key="plan">
             <h6 className="capitalize">בניית תוכנית</h6>
           </Link>
           <div className="relative">
@@ -129,7 +129,7 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
-              <Link className="link" to="/plan" onClick={toggleSidebar}>בניית תוכנית</Link>
+              <Link className="link" to="/generate-plan" onClick={toggleSidebar}>בניית תוכנית</Link>
               <Link className="link" to="/about" onClick={toggleSidebar}>אודות</Link>
               {!currentUser && (
                 <Link className="link" to="/login" onClick={toggleSidebar}>
