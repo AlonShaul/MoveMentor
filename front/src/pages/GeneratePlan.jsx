@@ -9,8 +9,8 @@ const GeneratePlan = () => {
   const { currentUser } = useAuth(); // Get currentUser from AuthContext
   const [category, setCategory] = useState('');
   const [duration, setDuration] = useState('');
-  const [adaptedForThirdAge, setAdaptedForThirdAge] = useState(false);
-  const [adaptedForChildren, setAdaptedForChildren] = useState(false);
+  const [adaptedForThirdAge, setAdaptedForThirdAge] = useState(true);
+  const [adaptedForChildren, setAdaptedForChildren] = useState(true);
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState('');
 
