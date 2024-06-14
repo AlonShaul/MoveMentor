@@ -1,9 +1,19 @@
 import Post from '../models/posts.js';
 import Plan from '../models/plan.js';
+import User from '../models/user.js';
 
 export const generatePlan = async (req, res) => {
   try {
-    const { category, adaptedForThirdAge, adaptedForChildren, duration } = req.query;
+    const { category, adaptedForThirdAge, adaptedForChildren, duration, userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     if (!category) {
       return res.status(400).json({ error: 'Category is required' });
@@ -27,11 +37,11 @@ export const generatePlan = async (req, res) => {
     }
 
     const posts = await Post.find(query);
+
     if (posts.length === 0) {
       return res.status(404).json({ error: 'No exercises found for your criteria' });
     }
 
-    // Convert duration to minutes and sort posts by duration in ascending order
     const exercises = posts.map(post => ({
       ...post.toObject(),
       totalDuration: (post.duration.hours * 60) + post.duration.minutes + (post.duration.seconds / 60)
@@ -45,7 +55,6 @@ export const generatePlan = async (req, res) => {
         selectedExercises.push(exercise);
         totalDuration += exercise.totalDuration;
       } else if (selectedExercises.length === 0 && exercise.totalDuration <= requestedDuration) {
-        // If no exercises have been selected yet and this single exercise fits the duration
         selectedExercises.push(exercise);
         totalDuration = exercise.totalDuration;
         break;
@@ -74,9 +83,14 @@ export const generatePlan = async (req, res) => {
       adaptedForChildren: adaptedForChildren === 'true',
       duration: totalDuration,
       exercises: plan,
+      userId: user._id,
+      username: user.username // Add username to the plan
     });
 
     await newPlan.save();
+
+    user.currentPlan = newPlan._id;
+    await user.save();
 
     res.status(201).json({ message: 'Plan generated successfully', plan: newPlan });
   } catch (error) {

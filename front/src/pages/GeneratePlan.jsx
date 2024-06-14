@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useApi } from '../context/ApiContext';
 import { useCategories } from '../context/CategoryContext';
-import ChatWidget from '../components/ChatWidget'; // Import ChatWidget component
+import { useAuth } from '../context/authContext';
 
 const GeneratePlan = () => {
   const { categories } = useCategories();
   const apiUrl = useApi();
+  const { currentUser } = useAuth(); // Get currentUser from AuthContext
   const [category, setCategory] = useState('');
   const [duration, setDuration] = useState('');
   const [adaptedForThirdAge, setAdaptedForThirdAge] = useState(false);
@@ -15,12 +16,18 @@ const GeneratePlan = () => {
 
   const generatePlan = async () => {
     try {
-      const response = await fetch(`${apiUrl}/api/plans?category=${category}&duration=${duration}&adaptedForThirdAge=${adaptedForThirdAge}&adaptedForChildren=${adaptedForChildren}`);
+      const token = localStorage.getItem('token'); // Get the token from local storage
+      const response = await fetch(`${apiUrl}/api/plans?category=${category}&adaptedForThirdAge=${adaptedForThirdAge}&adaptedForChildren=${adaptedForChildren}&duration=${duration}&userId=${currentUser._id}`, { // Include userId
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Use the token here
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await response.json();
 
       if (response.ok) {
         setPlan(data.plan);
-        setError('');
       } else {
         setError(data.error);
       }
@@ -88,10 +95,13 @@ const GeneratePlan = () => {
         {plan && (
           <div>
             <h2 className="text-xl font-bold mb-4">Generated Plan</h2>
+            <p className="mb-2"><strong>Username:</strong> {currentUser.username}</p>
+            <p className="mb-2"><strong>Category:</strong> {plan.category}</p>
+            <p className="mb-4"><strong>Total Duration:</strong> {plan.duration} minutes</p>
             {plan.exercises.map((exercise, index) => (
               <div key={index} className="border border-gray-300 p-4 rounded mb-4">
                 <h3 className="text-lg font-semibold">{exercise.title}</h3>
-                <p>{exercise.explanation}</p>
+                <p dangerouslySetInnerHTML={{ __html: exercise.explanation }}></p>
                 {exercise.videoUrl && (
                   <a href={exercise.videoUrl} className="text-blue-500 hover:underline">
                     Video

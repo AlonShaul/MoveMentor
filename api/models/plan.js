@@ -1,22 +1,24 @@
 import mongoose from 'mongoose';
 
-const ExerciseSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  explanation: { type: String, required: true },
-  videoUrl: { type: String, required: true },
-  duration: { type: Number, required: true }, // Store total duration in minutes or seconds
-  category: { type: String, required: true },
-  adaptedForThirdAge: { type: Boolean, default: false },
-  adaptedForChildren: { type: Boolean, default: false },
-});
-
 const PlanSchema = new mongoose.Schema({
   category: { type: String, required: true },
-  adaptedForThirdAge: { type: Boolean, default: false },
-  adaptedForChildren: { type: Boolean, default: false },
-  duration: { type: Number, required: true }, // Store total duration of the plan
-  exercises: [ExerciseSchema],
+  adaptedForThirdAge: { type: Boolean, required: true },
+  adaptedForChildren: { type: Boolean, required: true },
+  duration: { type: Number, required: true },
+  exercises: [
+    {
+      title: { type: String, required: true },
+      explanation: { type: String, required: true },
+      videoUrl: { type: String, required: true },
+      duration: { type: Number, required: true },
+      category: { type: String, required: true },
+      adaptedForThirdAge: { type: Boolean, required: true },
+      adaptedForChildren: { type: Boolean, required: true }
+    }
+  ],
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  username: { type: String, required: true },
   date: { type: Date, default: Date.now }
 });
 
-export default mongoose.model('Plan', PlanSchema);
+export default mongoose.models.Plan || mongoose.model('Plan', PlanSchema);

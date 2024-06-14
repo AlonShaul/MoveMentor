@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.js';
 import postRoutes from './routes/posts.js';
 import userRoutes from './routes/users.js';
 import planRoutes from './routes/planRoutes.js';
+import { authMiddleware } from './middleware/auth.js'; // Import authentication middleware
 import { WebhookClient } from 'dialogflow-fulfillment';
 import { generatePlan } from './controllers/plan.js';
 
@@ -68,7 +69,8 @@ app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/plans', planRoutes);
 
-app.post('/webhook', express.json(), async (req, res) => {
+// Dialogflow webhook route
+app.post('/webhook', express.json(), authMiddleware, async (req, res) => {
   const agent = new WebhookClient({ request: req, response: res });
 
   function welcome(agent) {
@@ -82,20 +84,15 @@ app.post('/webhook', express.json(), async (req, res) => {
 
   async function handleGeneratePlan(agent) {
     const category = agent.parameters.category;
-    const adaptedForThirdAge = agent.parameters.adaptedForThirdAge === 'true';
-    const adaptedForChildren = agent.parameters.adaptedForChildren === 'true';
+    const adaptedForThirdAge = agent.parameters.adaptedForThirdAge;
+    const adaptedForChildren = agent.parameters.adaptedForChildren;
+    const duration = agent.parameters.duration;
 
-    req.query = { category, adaptedForThirdAge, adaptedForChildren };
-
-    try {
-      const result = await generatePlan(req, res);
-      if (res.statusCode === 201) {
-        agent.add('Plan generated successfully.');
-      } else {
-        agent.add('Failed to generate the plan.');
-      }
-    } catch (error) {
-      console.error('Error handling generate plan:', error);
+    req.query = { category, adaptedForThirdAge, adaptedForChildren, duration, userId: req.user._id };
+    const response = await generatePlan(req, res);
+    if (res.statusCode === 201) {
+      agent.add('Plan generated successfully.');
+    } else {
       agent.add('Failed to generate the plan.');
     }
   }
