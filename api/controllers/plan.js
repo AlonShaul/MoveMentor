@@ -29,11 +29,44 @@ export const generatePlan = async (req, res) => {
     }
 
     let query = { cat: category };
-    if (adaptedForThirdAge !== undefined) {
-      query.adaptedForThirdAge = adaptedForThirdAge === 'true';
+
+    if (adaptedForThirdAge === 'true' && adaptedForChildren === 'true') {
+      query = {
+        cat: category,
+        $or: [
+          { adaptedForThirdAge: true },
+          { adaptedForChildren: true }
+        ]
+      };
     }
-    if (adaptedForChildren !== undefined) {
-      query.adaptedForChildren = adaptedForChildren === 'true';
+    if (adaptedForThirdAge === 'true' && adaptedForChildren !== 'true') {
+      query = {
+        cat: category,
+        $or: [
+          { adaptedForThirdAge: true },
+          { adaptedForChildren: true },
+          { adaptedForThirdAge: { $exists: false } }
+        ]
+      };
+    } 
+    if (adaptedForChildren === 'true' && adaptedForThirdAge !== 'true' ) {
+      query = {
+        cat: category,
+        $or: [
+          { adaptedForChildren: true },
+          { adaptedForThirdAge: true },
+          { adaptedForChildren: { $exists: false } }
+        ]
+      };
+    } 
+    if (adaptedForThirdAge !== 'true' && adaptedForChildren !== 'true') {
+      query = {
+        cat: category,
+        $and: [
+          { adaptedForThirdAge: false },
+          { adaptedForChildren: false }
+        ]
+      };
     }
 
     const posts = await Post.find(query);
