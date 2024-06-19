@@ -55,7 +55,7 @@ const UserProfile = () => {
 
   return (
     <div className="profile-page p-4 md:p-8 mt-10 md:mt-40">
-      <h1 className="text-2xl font-bold mb-4">User Profile</h1>
+      <h1 className="text-2xl font-bold mb-4 text-white">User Profile</h1>
       <div className="profile-info bg-white p-4 rounded-lg shadow-md mb-4">
         <p><strong>Username:</strong> {userDetails.username}</p>
         <p><strong>Email:</strong> {userDetails.email}</p>
@@ -66,7 +66,7 @@ const UserProfile = () => {
         {lastPlan ? (
           <div className="plan mb-4">
             <p><strong>Category:</strong> {lastPlan.category}</p>
-            <p><strong>Total Duration:</strong> {lastPlan.exercises.reduce((total, exercise) => total + (exercise.duration.hours * 60 + exercise.duration.minutes + exercise.duration.seconds / 60), 0)} minutes</p>
+            <p><strong>Total Duration:</strong> {lastPlan.duration} minutes</p>
             {lastPlan.exercises.map((exercise, index) => (
               <div key={index} className="border border-gray-300 p-4 rounded mb-4">
                 <h3 className="text-lg font-semibold">{exercise.title}</h3>

@@ -38,9 +38,9 @@ const Navbar = () => {
   };
 
   return (
-    <div className="navbar bg-gradient-to-r from-blue-900 to-blue-600 text-white fixed w-full z-10 top-0 h-20 ">
+    <div className="navbar fixed w-full z-10 top-4 h-20 text-white bg-transparent font-bold">
       <div className="container mx-auto px-2 flex justify-between items-center h-full"> {/* Changed px-4 to px-2 to move the logo left */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-8">
           <div className="logo">
             <Link to="/">
               <img src={Logo} alt="Logo" className="h-20" /> {/* Increased the logo size */}
@@ -101,7 +101,7 @@ const Navbar = () => {
         </div>
       </div>
       {isOpen && (
-        <div className="fixed inset-0 flex z-20">
+        <div className="fixed inset-0 flex z-0">
           <div className="bg-black bg-opacity-50 flex-grow" onClick={closeSidebar}></div>
           <div className="bg-white w-64 h-full shadow-md p-4 overflow-y-auto">
             <button onClick={toggleSidebar} className="text-gray-800 focus:outline-none mb-4">
