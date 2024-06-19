@@ -6,6 +6,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useCategories } from "../context/CategoryContext";
 import { AuthContext } from "../context/authContext";
 import { useApi } from "../context/ApiContext";
+import backgroundImage from "../img/wp7935249.jpg"; // Import the background image
+
 
 const Write = () => {
   const location = useLocation();
@@ -111,8 +113,10 @@ const Write = () => {
   
 
   return (
-    <div className="flex flex-col items-center p-4 mt-20 min-h-screen bg-gradient-to-br from-gray-100 to-gray-300">
-      <div className="w-full max-w-4xl bg-white p-6 rounded-lg shadow-lg">
+    <div
+      className="flex flex-col items-center p-4 mt-20 min-h-screen bg-cover bg-center" 
+      style={{ backgroundImage: `url(${backgroundImage})` }}>
+      <div className="w-full max-w-4xl bg-sky-200 p-6 rounded-lg shadow-lg">
         <div className="p-4 bg-blue-50 rounded-lg shadow-md mb-4">
           <input
             type="text"
