@@ -26,7 +26,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://movementor-fyyf.onrender.com'], // Allow your frontend URL
+  origin: ['http://localhost:3000', 'https://movementor-fyyf.onrender.com','https://movementor-1.onrender.com'], // Allow your frontend URL
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }));
@@ -90,7 +90,7 @@ app.post('/webhook', express.json(), authMiddleware, async (req, res) => {
     const agent = new WebhookClient({ request: req, response: res });
     console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
     console.log('Dialogflow Request body: ' + JSON.stringify(request.body));
-    
+
     function welcome(agent) {
       agent.add(`Welcome to my agent!`);
     }
