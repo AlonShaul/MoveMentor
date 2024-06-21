@@ -3,7 +3,6 @@ import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Write from "./pages/Write";
-import Home from "./pages/Home";
 import Single from "./pages/Single";
 import UserProfile from "./pages/UserProfile";
 import GeneratePlan from "./pages/GeneratePlan";
@@ -39,7 +38,7 @@ const router = createBrowserRouter([
         path: "/",
         element: (
           <PrivateRoute>
-            <Home />
+            <About />
           </PrivateRoute>
         ),
       },
@@ -83,14 +82,7 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-      {
-        path: "/about",
-        element: (
-          <PrivateRoute>
-            <About />
-          </PrivateRoute>
-        ),
-      },
+
     ],
   },
   { path: "/register", element: <Register /> },
