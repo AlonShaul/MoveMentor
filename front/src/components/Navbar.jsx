@@ -64,7 +64,8 @@ const Navbar = () => {
               <span className="write ml-4">כתוב פוסט</span>
             </Link>
           )}
-          <Link className="link" to="/about" key="about">
+          <Link className="link" to="/" key="about">
+            <h6 className="capitalize">אודות</h6>
           </Link>
           <Link className="link" to="/generate-plan" key="plan">
             <h6 className="capitalize">בניית תוכנית</h6>
@@ -89,7 +90,7 @@ const Navbar = () => {
               </div>
             )}
           </div>
-          <Link className="link" to="/" key="home">
+          <Link className="link" to="/about" key="home">
             <h6 className="capitalize">דף הבית</h6>
           </Link>
         </div>
@@ -129,6 +130,7 @@ const Navbar = () => {
                 )}
               </div>
               <Link className="link" to="/generate-plan" onClick={toggleSidebar}>בניית תוכנית</Link>
+              <Link className="link" to="/about" onClick={toggleSidebar}>אודות</Link>
               {!currentUser && (
                 <Link className="link" to="/login" onClick={toggleSidebar}>
                   Login
