@@ -9,6 +9,10 @@ import Delete from "../img/delete.png";
 
 const Single = () => {
   const [post, setPost] = useState({});
+  const [userRating, setUserRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const postId = location.pathname.split("/")[2];
@@ -20,12 +24,19 @@ const Single = () => {
       try {
         const res = await axios.get(`${apiUrl}/api/posts/${postId}`);
         setPost(res.data);
+
+        // Initialize rating state
+        const userRating = res.data.ratings.find(r => r.userId === currentUser._id)?.value || 0;
+        setUserRating(userRating);
+
+        setLiked(res.data.likes.includes(currentUser._id));
+        setDisliked(res.data.dislikes.includes(currentUser._id));
       } catch (err) {
         console.log(err);
       }
     };
     fetchData();
-  }, [postId, apiUrl]);
+  }, [postId, apiUrl, currentUser._id]);
 
   const handleDelete = async () => {
     try {
@@ -39,15 +50,82 @@ const Single = () => {
       console.log(err);
     }
   };
+
   const getText = (html) => {
     const doc = new DOMParser().parseFromString(html, "text/html");
     return doc.body.textContent || "";
   };
-  
+
   const formatDuration = (duration) => {
     if (!duration) return "";
     const { hours, minutes, seconds } = duration;
     return `${hours}h ${minutes}m ${seconds}s`;
+  };
+
+  const renderStars = () => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <button
+          key={i}
+          type="button"
+          className={`text-2xl ${i <= (hover || userRating) ? "text-yellow-500" : "text-gray-300"}`}
+          onClick={() => updateRating(i)}
+          onMouseEnter={() => setHover(i)}
+          onMouseLeave={() => setHover(userRating)}
+        >
+          &#9733;
+        </button>
+      );
+    }
+    return stars;
+  };
+
+  const updateRating = async (newRating) => {
+    try {
+      await axios.put(`${apiUrl}/api/posts/${postId}`, { rating: newRating }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setUserRating(newRating);
+      const res = await axios.get(`${apiUrl}/api/posts/${postId}`);
+      setPost(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleLike = async () => {
+    try {
+      await axios.put(`${apiUrl}/api/posts/${postId}`, { liked: true }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setLiked(true);
+      setDisliked(false);
+      const res = await axios.get(`${apiUrl}/api/posts/${postId}`);
+      setPost(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleDislike = async () => {
+    try {
+      await axios.put(`${apiUrl}/api/posts/${postId}`, { disliked: true }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setLiked(false);
+      setDisliked(true);
+      const res = await axios.get(`${apiUrl}/api/posts/${postId}`);
+      setPost(res.data);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -59,13 +137,7 @@ const Single = () => {
       </div>
       <div className="content text-center space-y-4">
         <div className="user flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
-          {post.userImg && (
-            <img src={post.userImg} alt="" className="w-16 h-16 rounded-full mx-auto md:mx-0" />
-          )}
-          <div className="info text-center">
-            <span className="block text-lg font-semibold">{post.username}</span>
-            <p className="text-gray-600 text-md font-bold items-center">Duration: {formatDuration(post.duration)}</p>
-          </div>
+
           {(currentUser?.username === post.username || currentUser?.role === 'admin') && (
             <div className="edit flex space-x-4">
               <Link to={`/write?edit=${postId}`} state={post}>
@@ -85,9 +157,51 @@ const Single = () => {
             </video>
           </div>
         )}
-        <div className="adaptations text-center">
-          <p>Adapted for Third Age: {post.adaptedForThirdAge ? 'Yes' : 'No'}</p>
-          <p>Adapted for Children: {post.adaptedForChildren ? 'Yes' : 'No'}</p>
+        <div className="adaptations text-center p-4 bg-gray-50 rounded-lg shadow-lg">
+          <h2 className="text-lg font-bold mb-4">Adaptations</h2>
+          <table className="w-1/2 mx-auto divide-y divide-gray-200 text-center">
+            <tbody className="bg-white divide-y divide-gray-200">
+              <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Duration:</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDuration(post.duration)}</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Adapted for Third Age:</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{post.adaptedForThirdAge ? 'Yes' : 'No'}</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Adapted for Children:</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{post.adaptedForChildren ? 'Yes' : 'No'}</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rating:</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{renderStars()}</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Like / Dislike:</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex justify-center items-center space-x-4">
+                    <button
+                      onClick={handleLike}
+                      className={`text-2xl transform transition-transform ${liked ? "text-blue-500 scale-125" : "text-gray-300"}`}
+                      onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                      onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                    >
+                      &#128077;
+                    </button>
+                    <button
+                      onClick={handleDislike}
+                      className={`text-2xl transform transition-transform ${disliked ? "text-red-500 scale-125" : "text-gray-300"}`}
+                      onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                      onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                    >
+                      &#128078;
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
       <Menu cat={post.cat} currentPostId={post._id} />

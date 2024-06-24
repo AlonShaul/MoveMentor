@@ -1,8 +1,10 @@
+// front/src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { useApi } from "../context/ApiContext";
 import { useAuth } from "../context/authContext";
+import StarRating from "../components/StarRating"; // Import the StarRating component
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -56,10 +58,6 @@ const Home = () => {
     setHasMore(posts.length > newVisiblePosts.length);
   };
 
-  const getText = (html) => {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    return doc.body.textContent;
-  };
 
   return (
     <div className="home mt-20 p-4 md:p-8">
@@ -80,7 +78,9 @@ const Home = () => {
               <Link className="link" to={`/post/${post._id}`}>
                 <h1 className="bg-cyan-500 text-white text-xl font-bold p-2 rounded">{post.title}</h1>
               </Link>
-              <p className="mt-2 text-gray-700">{getText(post.desc).substring(0, 100)}...</p>
+              <div className="mt-2 text-gray-700">
+                <StarRating rating={post.rating} /> {/* Use the StarRating component */}
+              </div>
               {currentUser?.role === 'admin' && (
                 <Link className="link" to={`/write?edit=${post._id}`} state={post}>
                   <button className="readMoreHome mt-4 bg-cyan-500 text-white py-2 px-4 rounded hover:bg-cyan-600 transition duration-200">

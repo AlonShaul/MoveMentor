@@ -45,6 +45,59 @@ const UserProfile = () => {
     }
   }, [currentUser, apiUrl]);
 
+  const renderStars = (rating, index) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <button
+          key={i}
+          type="button"
+          className={`text-2xl ${i <= rating ? "text-yellow-500" : "text-gray-300"}`}
+          onClick={() => handleRating(index, i)}
+        >
+          &#9733;
+        </button>
+      );
+    }
+    return stars;
+  };
+
+  const handleRating = (exerciseIndex, rating) => {
+    setLastPlan(prevPlan => {
+      const updatedExercises = prevPlan.exercises.map((exercise, index) => {
+        if (index === exerciseIndex) {
+          return { ...exercise, rating: rating };
+        }
+        return exercise;
+      });
+      return { ...prevPlan, exercises: updatedExercises };
+    });
+  };
+
+  const handleLike = (exerciseIndex) => {
+    setLastPlan(prevPlan => {
+      const updatedExercises = prevPlan.exercises.map((exercise, index) => {
+        if (index === exerciseIndex) {
+          return { ...exercise, liked: true, disliked: false };
+        }
+        return exercise;
+      });
+      return { ...prevPlan, exercises: updatedExercises };
+    });
+  };
+
+  const handleDislike = (exerciseIndex) => {
+    setLastPlan(prevPlan => {
+      const updatedExercises = prevPlan.exercises.map((exercise, index) => {
+        if (index === exerciseIndex) {
+          return { ...exercise, liked: false, disliked: true };
+        }
+        return exercise;
+      });
+      return { ...prevPlan, exercises: updatedExercises };
+    });
+  };
+
   if (!currentUser) {
     return <div>Please log in to see your profile.</div>;
   }
@@ -62,22 +115,65 @@ const UserProfile = () => {
         <p><strong>Role:</strong> {userDetails.role}</p>
       </div>
       <div className="user-plans bg-white p-4 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold mb-4">Last Generated Plan</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">The Plan:</h2>
         {lastPlan ? (
           <div className="plan mb-4">
-            <p><strong>Category:</strong> {lastPlan.category}</p>
-            <p><strong>Total Duration:</strong> {lastPlan.duration} minutes</p>
-            {lastPlan.exercises.map((exercise, index) => (
-              <div key={index} className="border border-gray-300 p-4 rounded mb-4">
-                <h3 className="text-lg font-semibold">{exercise.title}</h3>
-                <p dangerouslySetInnerHTML={{ __html: exercise.explanation }}></p>
-                {exercise.videoUrl && (
-                  <a href={exercise.videoUrl} className="text-blue-500 hover:underline">
-                    Video
-                  </a>
-                )}
-              </div>
-            ))}
+            <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-lg mb-6 text-center shadow-lg">
+              <p className="text-xl font-semibold text-blue-700"><strong>Category:</strong> {lastPlan.category}</p>
+              <p className="text-xl font-semibold text-blue-700"><strong>Number of Weeks:</strong> {lastPlan.numberOfWeeks}</p>
+              <p className="text-xl font-semibold text-blue-700"><strong>Sessions per Week:</strong> {lastPlan.sessionsPerWeek}</p>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Video</th>
+                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Like / Dislike</th>
+                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Third Age</th>
+                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Children</th>
+                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Duration</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {lastPlan.exercises.map((exercise, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exercise.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {exercise.videoUrl && (
+                        <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
+                          Video
+                        </a>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{renderStars(exercise.rating, index)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button
+                        onClick={() => handleLike(index)}
+                        className={`text-2xl transform transition-transform ${exercise.liked ? "text-blue-500 scale-125" : "text-gray-300"}`}
+                        onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                        onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                      >
+                        &#128077;
+                      </button>
+                      <button
+                        onClick={() => handleDislike(index)}
+                        className={`text-2xl transform transition-transform ${exercise.disliked ? "text-red-500 scale-125" : "text-gray-300"}`}
+                        onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                        onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                      >
+                        &#128078;
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.duration} minutes</td> {/* Total Duration */}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <p>No plans generated yet.</p>

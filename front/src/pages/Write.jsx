@@ -8,7 +8,6 @@ import { AuthContext } from "../context/authContext";
 import { useApi } from "../context/ApiContext";
 import backgroundImage from "../img/wp7935249.jpg"; // Import the background image
 
-
 const Write = () => {
   const location = useLocation();
   const state = location.state || {};
@@ -16,7 +15,6 @@ const Write = () => {
   const [title, setTitle] = useState(state.title || "");
   const [value, setValue] = useState(state.desc || "");
   const [videoUrl, setVideoUrl] = useState(state.videoUrl || "");
-  const [hours, setHours] = useState(state.duration?.hours || 0);
   const [minutes, setMinutes] = useState(state.duration?.minutes || 0);
   const [seconds, setSeconds] = useState(state.duration?.seconds || 0);
   const [adaptedForThirdAge, setAdaptedForThirdAge] = useState(state.adaptedForThirdAge || false);
@@ -69,7 +67,6 @@ const Write = () => {
     }
   
     const duration = {
-      hours: parseInt(hours, 10),
       minutes: parseInt(minutes, 10),
       seconds: parseInt(seconds, 10)
     };
@@ -110,8 +107,6 @@ const Write = () => {
     }
   };
   
-  
-
   return (
     <div
       className="flex flex-col items-center p-4 mt-20 min-h-screen bg-cover bg-center" 
@@ -136,10 +131,10 @@ const Write = () => {
         </div>
         <div className="mb-10 p-4 bg-blue-50 rounded-lg shadow-md">
           <h1 className="text-lg font-bold mb-2 text-right text-blue-800 border-b-2 pb-2">קטגוריה</h1>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-2">
             {categories.map((category) => (
-              <div className="mb-2 flex items-center justify-end" key={category}>
-                <label htmlFor={category} className="mr-2">{category.charAt(0).toUpperCase() + category.slice(1)}</label>
+              <div className="flex items-center justify-between" key={category}>
+                <label htmlFor={category} className="mx-0	flex-1 text-right">{category.charAt(0).toUpperCase() + category.slice(1)}</label>
                 <input
                   type="radio"
                   checked={cat === category}
@@ -147,6 +142,7 @@ const Write = () => {
                   value={category}
                   id={category}
                   onChange={(e) => setCat(e.target.value)}
+                  className="ml-2"
                 />
               </div>
             ))}
@@ -154,17 +150,7 @@ const Write = () => {
         </div>
         <div className="mb-10 p-4 bg-blue-50 rounded-lg shadow-md">
           <h1 className="text-lg font-bold mb-2 text-right text-blue-800 border-b-2 pb-2">משך</h1>
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <label className="block text-center">שעות</label>
-              <input
-                type="number"
-                value={hours}
-                placeholder="שעות"
-                onChange={(e) => setHours(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg mb-2 shadow-sm text-center"
-              />
-            </div>
+          <div className="flex justify-center space-x-4">
             <div className="flex-1">
               <label className="block text-center">דקות</label>
               <input
@@ -218,14 +204,13 @@ const Write = () => {
             {isUploading ? "Uploading..." : "העלאת וידאו"}
           </button>
           {videoUrl && <p className="text-sm text-gray-500 mb-2">וידאו הועלה: {videoUrl}</p>}
-
-          <button
+        </div>
+        <button
           onClick={handleClick}
           className={`w-full py-3 rounded-lg transition duration-200 shadow-md ${postId ? "bg-cyan-500 hover:bg-cyan-600 text-white" : "bg-green-500 hover:bg-green-600 text-white"}`}
         >
           {postId ? "ערוך" : "פרסם"}
         </button>
-        </div>
       </div>
     </div>
   );
