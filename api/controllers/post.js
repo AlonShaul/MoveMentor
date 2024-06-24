@@ -23,6 +23,69 @@ export const generateExercisePlan = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+export const ratePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { rating } = req.body;
+    const userId = req.user._id;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json("Post not found");
+
+    const existingRating = post.ratings.find(r => r.userId.toString() === userId.toString());
+    if (existingRating) {
+      existingRating.value = rating;
+    } else {
+      post.ratings.push({ userId, value: rating });
+    }
+
+    const totalRating = post.ratings.reduce((sum, r) => sum + r.value, 0);
+    post.rating = totalRating / post.ratings.length;
+
+    const updatedPost = await post.save();
+    res.status(200).json(updatedPost);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+export const likePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json("Post not found");
+
+    if (!post.likes.includes(userId)) post.likes.push(userId);
+    post.dislikes = post.dislikes.filter(id => id.toString() !== userId.toString());
+
+    const updatedPost = await post.save();
+    res.status(200).json(updatedPost);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const dislikePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json("Post not found");
+
+    if (!post.dislikes.includes(userId)) post.dislikes.push(userId);
+    post.likes = post.likes.filter(id => id.toString() !== userId.toString());
+
+    const updatedPost = await post.save();
+    res.status(200).json(updatedPost);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 export const getPosts = async (req, res) => {
   try {
@@ -74,9 +137,41 @@ export const addPost = async (req, res) => {
   }
 };
 
+
 export const updatePost = async (req, res) => {
   try {
-    const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const postId = req.params.id;
+    const { rating, liked, disliked } = req.body;
+    const userId = req.user._id;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json("Post not found");
+
+    // Update or add the rating
+    if (rating !== undefined) {
+      const existingRating = post.ratings.find(r => r.userId.toString() === userId.toString());
+      if (existingRating) {
+        existingRating.value = rating;
+      } else {
+        post.ratings.push({ userId, value: rating });
+      }
+
+      // Recalculate the average rating
+      const totalRating = post.ratings.reduce((sum, r) => sum + r.value, 0);
+      post.rating = totalRating / post.ratings.length;
+    }
+
+    if (liked) {
+      if (!post.likes.includes(userId)) post.likes.push(userId);
+      post.dislikes = post.dislikes.filter(id => id.toString() !== userId.toString());
+    }
+
+    if (disliked) {
+      if (!post.dislikes.includes(userId)) post.dislikes.push(userId);
+      post.likes = post.likes.filter(id => id.toString() !== userId.toString());
+    }
+
+    const updatedPost = await post.save();
     res.status(200).json(updatedPost);
   } catch (err) {
     res.status(500).json({ message: err.message });
