@@ -36,21 +36,26 @@ const GeneratePlan = () => {
 
   const generatePlan = async () => {
     try {
+      setError(''); // Clear previous errors
       const token = localStorage.getItem('token');
-      const response = await fetch(`${apiUrl}/api/plans?category=${category}&duration=${duration}&userId=${currentUser._id}&age=${age}`, {
-        method: 'GET',
+      const response = await axios.get(`${apiUrl}/api/plans`, {
+        params: {
+          category,
+          duration,
+          userId: currentUser._id,
+          age
+        },
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
+        const data = response.data;
         setPlan(data.plan);
         await savePlanToUserProfile(data.plan._id);
       } else {
-        setError(data.error);
+        setError(response.data.error);
       }
     } catch (error) {
       setError('Failed to fetch the plan');

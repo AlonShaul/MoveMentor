@@ -12,7 +12,7 @@ const UserProfile = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [plans, setPlans] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [error, setError] = useState('');
+  const [error] = useState('');
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -36,7 +36,6 @@ const UserProfile = () => {
           }
         });
         if (res.data.length > 0) {
-          // Sort plans by date in ascending order
           const sortedPlans = res.data.sort((a, b) => new Date(b.plan.date) - new Date(a.plan.date));
           setPlans(sortedPlans);
         }
@@ -54,7 +53,7 @@ const UserProfile = () => {
   const deletePlan = async (planId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${apiUrl}/api/plans`, {
+      await axios.delete(`${apiUrl}/api/plans/delete`, {
         params: {
           userId: currentUser._id,
           planId
@@ -64,12 +63,12 @@ const UserProfile = () => {
           'Content-Type': 'application/json'
         }
       });
-      // Remove the deleted plan from the state
       setPlans((prevPlans) => prevPlans.filter(plan => plan.plan._id !== planId));
     } catch (err) {
       console.log(err);
     }
   };
+  
 
   const renderStars = (rating, index) => {
     const stars = [];
@@ -156,9 +155,9 @@ const UserProfile = () => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
+    return `${day}/${month}/${year}`;
   };
 
   if (!currentUser) {
@@ -206,10 +205,10 @@ const UserProfile = () => {
                     <p className="text-xl font-semibold text-blue-700"><strong>Sessions per Week:</strong> {planWrapper.plan.sessionsPerWeek}</p>
                     <p className="text-xl font-semibold text-blue-700"><strong>Date:</strong> {formatDate(planWrapper.plan.date)}</p>
                     <button
-                      className="text-red-500 hover:text-red-700"
+                      className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-200"
                       onClick={() => deletePlan(planWrapper.plan._id)}
                     >
-                      &#10005;
+                      Delete Plan
                     </button>
                   </>
                 )}
