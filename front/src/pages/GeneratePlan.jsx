@@ -10,20 +10,22 @@ const GeneratePlan = () => {
   const { currentUser } = useAuth(); // Get currentUser from AuthContext
   const [category, setCategory] = useState('');
   const [duration, setDuration] = useState('');
-  const [adaptedForThirdAge, setAdaptedForThirdAge] = useState(true);
-  const [adaptedForChildren, setAdaptedForChildren] = useState(true);
+  const [age, setAge] = useState('');
   const [sessionsPerWeek, setSessionsPerWeek] = useState('');
-  const [rating, setRating] = useState('');
   const [numberOfWeeks, setNumberOfWeeks] = useState('');
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState('');
 
-  const savePlanToUserProfile = async (planData) => {
+  const savePlanToUserProfile = async (planId) => {
     try {
-      const token = localStorage.getItem('token'); // Get the token from local storage
-      await axios.post(`${apiUrl}/api/users/${currentUser._id}/plans`, planData, {
+      const token = localStorage.getItem('token');
+      await axios.post(`${apiUrl}/api/users/plans`, {
+        userId: currentUser._id,
+        category,
+        planId
+      }, {
         headers: {
-          'Authorization': `Bearer ${token}`, // Use the token here
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -34,11 +36,11 @@ const GeneratePlan = () => {
 
   const generatePlan = async () => {
     try {
-      const token = localStorage.getItem('token'); // Get the token from local storage
-      const response = await fetch(`${apiUrl}/api/plans?category=${category}&adaptedForThirdAge=${adaptedForThirdAge}&adaptedForChildren=${adaptedForChildren}&duration=${duration}&sessionsPerWeek=${sessionsPerWeek}&rating=${rating}&numberOfWeeks=${numberOfWeeks}&userId=${currentUser._id}`, { // Include new parameters
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${apiUrl}/api/plans?category=${category}&duration=${duration}&userId=${currentUser._id}&age=${age}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`, // Use the token here
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -46,7 +48,7 @@ const GeneratePlan = () => {
 
       if (response.ok) {
         setPlan(data.plan);
-        savePlanToUserProfile(data.plan);
+        await savePlanToUserProfile(data.plan._id);
       } else {
         setError(data.error);
       }
@@ -138,22 +140,22 @@ const GeneratePlan = () => {
           />
         </div>
         <div className="mb-4">
+          <label className="block text-white text-sm font-bold mb-2">Age</label>
+          <input
+            type="number"
+            placeholder="Age"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            className="border border-gray-300 p-2 rounded w-full"
+          />
+        </div>
+        <div className="mb-4">
           <label className="block text-white text-sm font-bold mb-2">Number of Training Sessions per Week</label>
           <input
             type="number"
             placeholder="Sessions per Week"
             value={sessionsPerWeek}
             onChange={(e) => setSessionsPerWeek(e.target.value)}
-            className="border border-gray-300 p-2 rounded w-full"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-white text-sm font-bold mb-2">Rating</label>
-          <input
-            type="number"
-            placeholder="Rating"
-            value={rating}
-            onChange={(e) => setRating(e.target.value)}
             className="border border-gray-300 p-2 rounded w-full"
           />
         </div>
@@ -166,24 +168,6 @@ const GeneratePlan = () => {
             onChange={(e) => setNumberOfWeeks(e.target.value)}
             className="border border-gray-300 p-2 rounded w-full"
           />
-        </div>
-        <div className="text-white mb-4 flex items-center font-bold">
-          <input
-            type="checkbox"
-            checked={adaptedForThirdAge}
-            onChange={(e) => setAdaptedForThirdAge(e.target.checked)}
-            className="mr-2"
-          />
-          <label>Adapted for Third Age</label>
-        </div>
-        <div className="text-white mb-4 flex items-center font-bold ">
-          <input
-            type="checkbox"
-            checked={adaptedForChildren}
-            onChange={(e) => setAdaptedForChildren(e.target.checked)}
-            className="mr-2"
-          />
-          <label>Adapted for Children</label>
         </div>
         <div className="mb-4">
           <button
@@ -248,7 +232,7 @@ const GeneratePlan = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.duration} minutes</td> {/* Total Duration */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.duration} minutes</td>
                   </tr>
                 ))}
               </tbody>
