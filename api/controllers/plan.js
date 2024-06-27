@@ -1,6 +1,7 @@
 import Post from '../models/posts.js';
 import Plan from '../models/plan.js';
 import User from '../models/user.js';
+import DeletedPlan from '../models/deletedPlan.js';  // Ensure this import
 
 export const generatePlan = async (req, res) => {
   try {
@@ -56,6 +57,7 @@ export const generatePlan = async (req, res) => {
     let totalDuration = 0;
 
     for (let exercise of exercises) {
+      if (selectedExercises.length >= 5) break; // Limit to 5 exercises
       if (totalDuration + exercise.totalDuration <= requestedDuration) {
         selectedExercises.push(exercise);
         totalDuration += exercise.totalDuration;
@@ -66,6 +68,7 @@ export const generatePlan = async (req, res) => {
 
     if (totalDuration < requestedDuration) {
       for (let exercise of exercises) {
+        if (selectedExercises.length >= 5) break; // Limit to 5 exercises
         if (!selectedExercises.includes(exercise) && (totalDuration + exercise.totalDuration) <= requestedDuration) {
           selectedExercises.push(exercise);
           totalDuration += exercise.totalDuration;
@@ -106,6 +109,49 @@ export const generatePlan = async (req, res) => {
     res.status(201).json({ message: 'Plan generated successfully', plan: newPlan });
   } catch (error) {
     console.error('Error generating plan:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+export const deletePlan = async (req, res) => {
+  try {
+    const { userId, planId } = req.query;
+
+    console.log('Delete Plan called with userId:', userId, 'planId:', planId);  // Debug log
+
+    if (!userId || !planId) {
+      return res.status(400).json({ error: 'User ID and Plan ID are required' });
+    }
+
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      return res.status(404).json({ error: 'Plan not found' });
+    }
+
+    // Move plan to DeletedPlan collection
+    const deletedPlan = new DeletedPlan({
+      category: plan.category,
+      adaptedForThirdAge: plan.adaptedForThirdAge,
+      adaptedForChildren: plan.adaptedForChildren,
+      duration: plan.duration,
+      exercises: plan.exercises,
+      userId: plan.userId,
+      username: plan.username
+    });
+    await deletedPlan.save();
+
+    // Delete the plan from Plan collection
+    await Plan.findByIdAndDelete(planId);
+
+    // Remove plan reference from user's plansByCategory
+    await User.updateOne(
+      { _id: userId },
+      { $pull: { plansByCategory: { plan: planId } } }
+    );
+
+    res.status(200).json({ message: 'Plan deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting plan:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
