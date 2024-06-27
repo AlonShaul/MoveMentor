@@ -3,6 +3,6 @@ import { generatePlan } from '../controllers/plan.js';
 
 const router = express.Router();
 
-router.get('/', generatePlan); // This should match your API call
+router.get('/', generatePlan);
 
 export default router;

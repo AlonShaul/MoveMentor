@@ -21,4 +21,4 @@ const PlanSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now }
 });
 
-export default mongoose.models.Plan || mongoose.model('Plan', PlanSchema);
+export default mongoose.model('Plan', PlanSchema);

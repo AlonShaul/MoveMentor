@@ -4,7 +4,7 @@ import User from '../models/user.js';
 
 export const generatePlan = async (req, res) => {
   try {
-    const { category, adaptedForThirdAge, adaptedForChildren, duration, userId } = req.query;
+    const { category, duration, userId, age } = req.query;
 
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' });
@@ -30,55 +30,27 @@ export const generatePlan = async (req, res) => {
 
     let query = { cat: category };
 
-    if (adaptedForThirdAge === 'true' && adaptedForChildren === 'true') {
-      query = {
-        cat: category,
-        $or: [
-          { adaptedForThirdAge: true },
-          { adaptedForChildren: true }
-        ]
-      };
-    }
-    if (adaptedForThirdAge === 'true' && adaptedForChildren !== 'true') {
-      query = {
-        cat: category,
-        $or: [
-          { adaptedForThirdAge: true },
-          { adaptedForChildren: true },
-          { adaptedForThirdAge: { $exists: false } }
-        ]
-      };
-    } 
-    if (adaptedForChildren === 'true' && adaptedForThirdAge !== 'true' ) {
-      query = {
-        cat: category,
-        $or: [
-          { adaptedForChildren: true },
-          { adaptedForThirdAge: true },
-          { adaptedForChildren: { $exists: false } }
-        ]
-      };
-    } 
-    if (adaptedForThirdAge !== 'true' && adaptedForChildren !== 'true') {
-      query = {
-        cat: category,
-        $and: [
-          { adaptedForThirdAge: false },
-          { adaptedForChildren: false }
-        ]
-      };
+    if (age < 14) {
+      query.adaptedForChildren = true;
+    } else if (age > 65) {
+      query.adaptedForThirdAge = true;
     }
 
-    const posts = await Post.find(query);
+    const posts = await Post.find(query)
+      .sort({ rating: -1 })
+      .lean();
 
     if (posts.length === 0) {
       return res.status(404).json({ error: 'No exercises found for your criteria' });
     }
 
-    const exercises = posts.map(post => ({
-      ...post.toObject(),
+    const dislikedPosts = user.dislikedPosts || [];
+    const filteredPosts = posts.filter(post => !dislikedPosts.includes(post._id));
+
+    const exercises = filteredPosts.map(post => ({
+      ...post,
       totalDuration: (post.duration.hours * 60) + post.duration.minutes + (post.duration.seconds / 60)
-    })).sort((a, b) => a.totalDuration - b.totalDuration);
+    })).sort((a, b) => b.rating - a.rating);
 
     let selectedExercises = [];
     let totalDuration = 0;
@@ -87,12 +59,18 @@ export const generatePlan = async (req, res) => {
       if (totalDuration + exercise.totalDuration <= requestedDuration) {
         selectedExercises.push(exercise);
         totalDuration += exercise.totalDuration;
-      } else if (selectedExercises.length === 0 && exercise.totalDuration <= requestedDuration) {
-        selectedExercises.push(exercise);
-        totalDuration = exercise.totalDuration;
-        break;
       } else {
         break;
+      }
+    }
+
+    if (totalDuration < requestedDuration) {
+      for (let exercise of exercises) {
+        if (!selectedExercises.includes(exercise) && (totalDuration + exercise.totalDuration) <= requestedDuration) {
+          selectedExercises.push(exercise);
+          totalDuration += exercise.totalDuration;
+        }
+        if (totalDuration >= requestedDuration) break;
       }
     }
 
@@ -112,17 +90,17 @@ export const generatePlan = async (req, res) => {
 
     const newPlan = new Plan({
       category,
-      adaptedForThirdAge: adaptedForThirdAge === 'true',
-      adaptedForChildren: adaptedForChildren === 'true',
+      adaptedForThirdAge: age > 65,
+      adaptedForChildren: age < 14,
       duration: totalDuration,
       exercises: plan,
       userId: user._id,
-      username: user.username // Add username to the plan
+      username: user.username
     });
 
     await newPlan.save();
 
-    user.currentPlan = newPlan._id;
+    user.plansByCategory.push({ category, plan: newPlan._id });
     await user.save();
 
     res.status(201).json({ message: 'Plan generated successfully', plan: newPlan });
