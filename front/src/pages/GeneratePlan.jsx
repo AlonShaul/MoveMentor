@@ -1,3 +1,4 @@
+// front/src/pages/GeneratePlan.jsx
 import React, { useState } from 'react';
 import { useApi } from '../context/ApiContext';
 import { useCategories } from '../context/CategoryContext';
@@ -7,7 +8,7 @@ import axios from 'axios';
 const GeneratePlan = () => {
   const { categories } = useCategories();
   const apiUrl = useApi();
-  const { currentUser } = useAuth(); // Get currentUser from AuthContext
+  const { currentUser } = useAuth(); 
   const [category, setCategory] = useState('');
   const [duration, setDuration] = useState('');
   const [age, setAge] = useState('');
@@ -43,15 +44,19 @@ const GeneratePlan = () => {
           category,
           duration,
           userId: currentUser._id,
-          age
+          age,
+          numberOfWeeks,
+          sessionsPerWeek
         },
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+  
       if (response.status === 200) {
         const data = response.data;
+        console.log('Generated Plan:', data.plan); // Debug log
         setPlan(data.plan);
         await savePlanToUserProfile(data.plan._id);
       } else {

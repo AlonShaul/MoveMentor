@@ -4,6 +4,7 @@ import { useCategories } from '../context/CategoryContext';
 import axios from 'axios';
 import { useApi } from '../context/ApiContext';
 import { Link } from 'react-router-dom';
+import StarRating from "../components/StarRating"; // Import the StarRating component
 
 const UserProfile = () => {
   const { currentUser } = useContext(AuthContext);
@@ -12,7 +13,7 @@ const UserProfile = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [plans, setPlans] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [error] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -68,7 +69,36 @@ const UserProfile = () => {
       console.log(err);
     }
   };
-  
+
+  const replan = async (planId, category, duration, adaptedForThirdAge, adaptedForChildren, numberOfWeeks, sessionsPerWeek) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${apiUrl}/api/plans/replan`, {
+        params: {
+          userId: currentUser._id,
+          planId,
+          category,
+          duration,
+          adaptedForThirdAge,
+          adaptedForChildren,
+          numberOfWeeks,
+          sessionsPerWeek
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response.status === 201) {
+        const newPlan = response.data.plan;
+        setPlans((prevPlans) => prevPlans.map(plan => (plan.plan._id === planId ? { ...plan, plan: newPlan } : plan)));
+      } else {
+        console.error(response.data.error);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const renderStars = (rating, index) => {
     const stars = [];
@@ -151,7 +181,7 @@ const UserProfile = () => {
 
   const groupedPlans = groupPlansByCategory(plans || []);
   const filteredPlans = selectedCategory ? groupedPlans[selectedCategory] || [] : Object.values(groupedPlans).flat();
-
+  console.log(filteredPlans);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -204,11 +234,18 @@ const UserProfile = () => {
                     <p className="text-xl font-semibold text-blue-700"><strong>Number of Weeks:</strong> {planWrapper.plan.numberOfWeeks}</p>
                     <p className="text-xl font-semibold text-blue-700"><strong>Sessions per Week:</strong> {planWrapper.plan.sessionsPerWeek}</p>
                     <p className="text-xl font-semibold text-blue-700"><strong>Date:</strong> {formatDate(planWrapper.plan.date)}</p>
+                    <p className="text-xl font-semibold text-blue-700"><strong>Total Duration:</strong> {planWrapper.plan.duration} minutes</p>
                     <button
                       className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-200"
                       onClick={() => deletePlan(planWrapper.plan._id)}
                     >
                       Delete Plan
+                    </button>
+                    <button
+                      className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-200 ml-2"
+                      onClick={() => replan(planWrapper.plan._id, planWrapper.category, planWrapper.plan.duration, planWrapper.plan.adaptedForThirdAge, planWrapper.plan.adaptedForChildren, planWrapper.plan.numberOfWeeks, planWrapper.plan.sessionsPerWeek)}
+                    >
+                      Replan
                     </button>
                   </>
                 )}
@@ -238,7 +275,7 @@ const UserProfile = () => {
                           </a>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{renderStars(exercise.rating, exerciseIndex)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><StarRating rating={exercise.rating}/></td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <button
                           onClick={() => handleLike(exerciseIndex, planIndex)}
