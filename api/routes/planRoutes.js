@@ -1,9 +1,10 @@
 import express from 'express';
-import { generatePlan, deletePlan } from '../controllers/plan.js';
+import { generatePlan, deletePlan, replan } from '../controllers/plan.js';
 
 const router = express.Router();
 
 router.get('/', generatePlan);
-router.delete('/delete', deletePlan);  // Ensure this line is correct
+router.delete('/delete', deletePlan);
+router.get('/replan', replan);
 
 export default router;

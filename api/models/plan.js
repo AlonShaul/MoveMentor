@@ -5,6 +5,8 @@ const PlanSchema = new mongoose.Schema({
   adaptedForThirdAge: { type: Boolean, required: true },
   adaptedForChildren: { type: Boolean, required: true },
   duration: { type: Number, required: true },
+  numberOfWeeks: { type: Number, required: true },
+  sessionsPerWeek: { type: Number, required: true },
   exercises: [
     {
       title: { type: String, required: true },
