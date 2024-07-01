@@ -9,6 +9,11 @@ const MIN_SETS = 2;
 const MAX_SETS = 4;
 const MIN_REPS = 8;
 const MAX_REPS = 10;
+const MIN_WEEKS = 1;
+const MAX_WEEKS = 8;
+const MIN_SESSIONS = 1;
+const MAX_SESSIONS = 3;
+const EXERCISES_PER_SESSION = { 1: 5, 2: 4, 3: 3 }; // Sessions per week mapped to number of exercises
 
 const getRandomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -53,6 +58,18 @@ export const generatePlan = async (req, res) => {
       return res.status(400).json({ error: 'Invalid duration.' });
     }
 
+    let numWeeks = parseInt(numberOfWeeks, 10);
+    if (isNaN(numWeeks) || numWeeks < MIN_WEEKS || numWeeks > MAX_WEEKS) {
+      return res.status(400).json({ error: `Number of weeks must be between ${MIN_WEEKS} and ${MAX_WEEKS}.` });
+    }
+
+    let sessionsPerWeekNum = parseInt(sessionsPerWeek, 10);
+    if (isNaN(sessionsPerWeekNum) || sessionsPerWeekNum < MIN_SESSIONS || sessionsPerWeekNum > MAX_SESSIONS) {
+      return res.status(400).json({ error: `Sessions per week must be between ${MIN_SESSIONS} and ${MAX_SESSIONS}.` });
+    }
+
+    const exercisesPerSession = EXERCISES_PER_SESSION[sessionsPerWeekNum];
+
     let query = { cat: category };
 
     if (age < 14) {
@@ -82,58 +99,49 @@ export const generatePlan = async (req, res) => {
       return res.status(400).json({ error: `Requested duration is less than the minimum possible duration of ${minPossibleDuration} minutes with the available exercises.` });
     }
 
-    let selectedExercises = filteredPosts.slice(0, 3);
-    let durations = selectedExercises.map(() => getRandomInt(MIN_DURATION, MAX_DURATION));
+    const plans = [];
 
-    distributeDurations(durations, requestedDuration);
+    for (let week = 0; week < numWeeks; week++) {
+      let selectedExercises = filteredPosts.slice(0, exercisesPerSession);
+      let durations = selectedExercises.map(() => getRandomInt(MIN_DURATION, MAX_DURATION));
 
-    selectedExercises = selectedExercises.map((exercise, index) => ({
-      ...exercise,
-      sets: getRandomInt(MIN_SETS, MAX_SETS),
-      turns: getRandomInt(MIN_REPS, MAX_REPS),
-      exerciseDuration: durations[index]
-    }));
+      distributeDurations(durations, requestedDuration);
 
-    const plan = selectedExercises.map(exercise => ({
-      title: exercise.title,
-      explanation: exercise.explanation,
-      videoUrl: exercise.videoUrl,
-      duration: exercise.exerciseDuration, // Total duration in minutes
-      category: exercise.cat,
-      adaptedForThirdAge: exercise.adaptedForThirdAge,
-      adaptedForChildren: exercise.adaptedForChildren,
-      sets: exercise.sets,
-      turns: exercise.turns
-    }));
+      selectedExercises = selectedExercises.map((exercise, index) => ({
+        ...exercise,
+        sets: getRandomInt(MIN_SETS, MAX_SETS),
+        turns: getRandomInt(MIN_REPS, MAX_REPS),
+        duration: durations[index],
+        category: exercise.cat
+      }));
 
-    const newPlan = new Plan({
-      category,
-      adaptedForThirdAge: age > 65,
-      adaptedForChildren: age < 14,
-      duration: requestedDuration,
-      numberOfWeeks: parseInt(numberOfWeeks, 10),
-      sessionsPerWeek: parseInt(sessionsPerWeek, 10),
-      exercises: plan,
-      userId: user._id,
-      username: user.username
-    });
+      const newPlan = new Plan({
+        category,
+        adaptedForThirdAge: age > 65,
+        adaptedForChildren: age < 14,
+        duration: requestedDuration,
+        numberOfWeeks: numWeeks, // Keep the original number of weeks
+        sessionsPerWeek: sessionsPerWeekNum,
+        exercises: selectedExercises,
+        userId: user._id,
+        username: user.username
+      });
 
-    await newPlan.save();
+      await newPlan.save();
+      plans.push(newPlan);
+      user.plansByCategory.push({ category, plan: newPlan._id });
+    }
 
-    user.plansByCategory.push({ category, plan: newPlan._id });
     await user.save();
 
-    res.status(201).json({ message: 'Plan generated successfully', plan: newPlan });
+    res.status(201).json({ message: 'Plans generated successfully', plans });
   } catch (error) {
-    console.error('Error generating plan:', error);
+    console.error('Error generating plans:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-
-
-
-
+// The deletePlan and replan functions remain unchanged
 
 
 
@@ -183,13 +191,6 @@ export const deletePlan = async (req, res) => {
   }
 };
 
-
-
-
-
-
-// Replan function
-
 export const replan = async (req, res) => {
   try {
     const { userId, planId, category, adaptedForThirdAge, adaptedForChildren, numberOfWeeks, sessionsPerWeek, duration } = req.query;
@@ -207,6 +208,9 @@ export const replan = async (req, res) => {
     if (isNaN(requestedDuration)) {
       return res.status(400).json({ error: 'Invalid duration.' });
     }
+
+    const weeks = Math.max(MIN_WEEKS, Math.min(MAX_WEEKS, parseInt(numberOfWeeks, 10)));
+    const sessions = Math.max(MIN_SESSIONS, Math.min(MAX_SESSIONS, parseInt(sessionsPerWeek, 10)));
 
     const oldPlan = await Plan.findById(planId);
     if (!oldPlan) {
@@ -266,50 +270,63 @@ export const replan = async (req, res) => {
       return res.status(400).json({ error: `Requested duration is less than the minimum possible duration of ${minPossibleDuration} minutes with the available exercises.` });
     }
 
-    let selectedExercises = filteredPosts.slice(0, 3);
-    let durations = selectedExercises.map(() => getRandomInt(MIN_DURATION, MAX_DURATION));
+    let totalPlans = [];
+    for (let week = 0; week < weeks; week++) {
+      for (let session = 0; session < sessions; session++) {
+        const exercisesPerSession = 6 - sessions; // 5 for 1 session, 4 for 2 sessions, 3 for 3 sessions per week
 
-    distributeDurations(durations, requestedDuration);
+        if (filteredPosts.length < exercisesPerSession) {
+          return res.status(400).json({ error: `Not enough exercises available for the requested sessions per week.` });
+        }
 
-    selectedExercises = selectedExercises.map((exercise, index) => ({
-      ...exercise,
-      sets: getRandomInt(MIN_SETS, MAX_SETS),
-      turns: getRandomInt(MIN_REPS, MAX_REPS),
-      exerciseDuration: durations[index]
-    }));
+        let selectedExercises = filteredPosts.slice(0, exercisesPerSession);
+        let durations = selectedExercises.map(() => getRandomInt(MIN_DURATION, MAX_DURATION));
 
-    const plan = selectedExercises.map(exercise => ({
-      title: exercise.title,
-      explanation: exercise.explanation,
-      videoUrl: exercise.videoUrl,
-      duration: exercise.exerciseDuration, // Total duration in minutes
-      category: exercise.cat,
-      adaptedForThirdAge: exercise.adaptedForThirdAge,
-      adaptedForChildren: exercise.adaptedForChildren,
-      sets: exercise.sets,
-      turns: exercise.turns
-    }));
+        distributeDurations(durations, requestedDuration);
 
-    const newPlan = new Plan({
-      category,
-      adaptedForThirdAge: adaptedForThirdAge === 'true',
-      adaptedForChildren: adaptedForChildren === 'true',
-      duration: requestedDuration,
-      numberOfWeeks: parseInt(numberOfWeeks, 10),
-      sessionsPerWeek: parseInt(sessionsPerWeek, 10),
-      exercises: plan,
-      userId: userId,
-      username: user.username
-    });
+        selectedExercises = selectedExercises.map((exercise, index) => ({
+          ...exercise,
+          sets: getRandomInt(MIN_SETS, MAX_SETS),
+          turns: getRandomInt(MIN_REPS, MAX_REPS),
+          exerciseDuration: durations[index]
+        }));
 
-    await newPlan.save();
+        const plan = selectedExercises.map(exercise => ({
+          title: exercise.title,
+          explanation: exercise.explanation,
+          videoUrl: exercise.videoUrl,
+          duration: exercise.exerciseDuration, // Total duration in minutes
+          category: exercise.cat,
+          adaptedForThirdAge: exercise.adaptedForThirdAge,
+          adaptedForChildren: exercise.adaptedForChildren,
+          sets: exercise.sets,
+          turns: exercise.turns
+        }));
 
-    await User.updateOne(
-      { _id: userId },
-      { $push: { plansByCategory: { category, plan: newPlan._id } } }
-    );
+        totalPlans.push({
+          category,
+          adaptedForThirdAge: adaptedForThirdAge === 'true',
+          adaptedForChildren: adaptedForChildren === 'true',
+          duration: requestedDuration,
+          numberOfWeeks: weeks,
+          sessionsPerWeek: sessions,
+          exercises: plan,
+          userId: userId,
+          username: user.username
+        });
+      }
+    }
 
-    res.status(201).json({ message: 'Plan replanned successfully', plan: newPlan });
+    for (let newPlan of totalPlans) {
+      const plan = new Plan(newPlan);
+      await plan.save();
+
+      user.plansByCategory.push({ category, plan: plan._id });
+    }
+
+    await user.save();
+
+    res.status(201).json({ message: 'Plan replanned successfully', plans: totalPlans });
   } catch (error) {
     console.error('Error replanning:', error);
     res.status(500).json({ error: 'Internal Server Error' });
