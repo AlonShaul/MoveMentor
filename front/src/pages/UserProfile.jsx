@@ -256,8 +256,7 @@ const UserProfile = () => {
                     <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                     <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                     <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Video</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Like / Dislike</th>
+                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sets / Reps </th>
                     <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Third Age</th>
                     <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Children</th>
                     <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Duration</th>
@@ -275,25 +274,7 @@ const UserProfile = () => {
                           </a>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><StarRating rating={exercise.rating}/></td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button
-                          onClick={() => handleLike(exerciseIndex, planIndex)}
-                          className={`text-2xl transform transition-transform ${exercise.liked ? "text-blue-500 scale-125" : "text-gray-300"}`}
-                          onMouseEnter={(e) => e.target.classList.add("scale-110")}
-                          onMouseLeave={(e) => e.target.classList.remove("scale-110")}
-                        >
-                          &#128077;
-                        </button>
-                        <button
-                          onClick={() => handleDislike(exerciseIndex, planIndex)}
-                          className={`text-2xl transform transition-transform ${exercise.disliked ? "text-red-500 scale-125" : "text-gray-300"}`}
-                          onMouseEnter={(e) => e.target.classList.add("scale-110")}
-                          onMouseLeave={(e) => e.target.classList.remove("scale-110")}
-                        >
-                          &#128078;
-                        </button>
-                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sets : {exercise.sets} / Reps : {exercise.turns} </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.duration} minutes</td>
