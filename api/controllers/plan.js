@@ -3,6 +3,38 @@ import Plan from '../models/plan.js';
 import User from '../models/user.js';
 import DeletedPlan from '../models/deletedPlan.js';
 
+const MIN_DURATION = 2; // Minimum duration in minutes
+const MAX_DURATION = 8; // Maximum duration in minutes
+const MIN_SETS = 2;
+const MAX_SETS = 4;
+const MIN_REPS = 8;
+const MAX_REPS = 10;
+
+const getRandomInt = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+const distributeDurations = (durations, total) => {
+  let currentTotal = durations.reduce((a, b) => a + b, 0);
+  let adjustmentNeeded = total - currentTotal;
+
+  while (adjustmentNeeded !== 0) {
+    for (let i = 0; i < durations.length; i++) {
+      if (adjustmentNeeded === 0) break;
+
+      if (adjustmentNeeded > 0 && durations[i] < MAX_DURATION) {
+        let increment = Math.min(adjustmentNeeded, MAX_DURATION - durations[i]);
+        durations[i] += increment;
+        adjustmentNeeded -= increment;
+      } else if (adjustmentNeeded < 0 && durations[i] > MIN_DURATION) {
+        let decrement = Math.min(Math.abs(adjustmentNeeded), durations[i] - MIN_DURATION);
+        durations[i] -= decrement;
+        adjustmentNeeded += decrement;
+      }
+    }
+  }
+};
+
 export const generatePlan = async (req, res) => {
   try {
     const { category, duration, userId, age, numberOfWeeks, sessionsPerWeek } = req.query;
@@ -17,8 +49,8 @@ export const generatePlan = async (req, res) => {
     }
 
     const requestedDuration = parseInt(duration, 10);
-    if (isNaN(requestedDuration) || requestedDuration <= 0) {
-      return res.status(400).json({ error: 'Invalid duration' });
+    if (isNaN(requestedDuration)) {
+      return res.status(400).json({ error: 'Invalid duration.' });
     }
 
     let query = { cat: category };
@@ -38,54 +70,47 @@ export const generatePlan = async (req, res) => {
     const dislikedPosts = user.dislikedPosts || [];
     const filteredPosts = posts.filter(post => !dislikedPosts.includes(post._id));
 
-    const exercises = filteredPosts.map(post => ({
-      ...post,
-      totalDuration: (post.duration.hours * 60) + post.duration.minutes + (post.duration.seconds / 60)
-    })).sort((a, b) => b.rating - a.rating);
+    const numVideos = filteredPosts.length;
+    const maxPossibleDuration = numVideos * MAX_DURATION;
+    const minPossibleDuration = numVideos * MIN_DURATION;
 
-    let selectedExercises = [];
-    let totalDuration = 0;
-
-    for (let exercise of exercises) {
-      if (selectedExercises.length >= 5) break;
-      if (totalDuration + exercise.totalDuration <= requestedDuration) {
-        selectedExercises.push(exercise);
-        totalDuration += exercise.totalDuration;
-      } else {
-        break;
-      }
+    if (requestedDuration > maxPossibleDuration) {
+      return res.status(400).json({ error: `Requested duration exceeds the maximum possible duration of ${maxPossibleDuration} minutes with the available exercises.` });
     }
 
-    if (totalDuration < requestedDuration) {
-      for (let exercise of exercises) {
-        if (selectedExercises.length >= 5) break;
-        if (!selectedExercises.includes(exercise) && (totalDuration + exercise.totalDuration) <= requestedDuration) {
-          selectedExercises.push(exercise);
-          totalDuration += exercise.totalDuration;
-        }
-        if (totalDuration >= requestedDuration) break;
-      }
+    if (requestedDuration < minPossibleDuration) {
+      return res.status(400).json({ error: `Requested duration is less than the minimum possible duration of ${minPossibleDuration} minutes with the available exercises.` });
     }
 
-    if (selectedExercises.length === 0) {
-      return res.status(400).json({ error: 'No suitable exercises found for the requested duration' });
-    }
+    let selectedExercises = filteredPosts.slice(0, 3);
+    let durations = selectedExercises.map(() => getRandomInt(MIN_DURATION, MAX_DURATION));
+
+    distributeDurations(durations, requestedDuration);
+
+    selectedExercises = selectedExercises.map((exercise, index) => ({
+      ...exercise,
+      sets: getRandomInt(MIN_SETS, MAX_SETS),
+      turns: getRandomInt(MIN_REPS, MAX_REPS),
+      exerciseDuration: durations[index]
+    }));
 
     const plan = selectedExercises.map(exercise => ({
       title: exercise.title,
       explanation: exercise.explanation,
       videoUrl: exercise.videoUrl,
-      duration: exercise.totalDuration,
+      duration: exercise.exerciseDuration, // Total duration in minutes
       category: exercise.cat,
       adaptedForThirdAge: exercise.adaptedForThirdAge,
       adaptedForChildren: exercise.adaptedForChildren,
+      sets: exercise.sets,
+      turns: exercise.turns
     }));
 
     const newPlan = new Plan({
       category,
       adaptedForThirdAge: age > 65,
       adaptedForChildren: age < 14,
-      duration: totalDuration,
+      duration: requestedDuration,
       numberOfWeeks: parseInt(numberOfWeeks, 10),
       sessionsPerWeek: parseInt(sessionsPerWeek, 10),
       exercises: plan,
@@ -104,6 +129,18 @@ export const generatePlan = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const deletePlan = async (req, res) => {
   try {
@@ -146,45 +183,60 @@ export const deletePlan = async (req, res) => {
   }
 };
 
+
+
+
+
+
 // Replan function
+
 export const replan = async (req, res) => {
   try {
-    const { userId, planId, category, duration, adaptedForThirdAge, adaptedForChildren, numberOfWeeks, sessionsPerWeek } = req.query;
+    const { userId, planId, category, adaptedForThirdAge, adaptedForChildren, numberOfWeeks, sessionsPerWeek, duration } = req.query;
 
     if (!userId || !planId || !category || !duration || !numberOfWeeks || !sessionsPerWeek) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    const plan = await Plan.findById(planId);
-    if (!plan) {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const requestedDuration = parseInt(duration, 10);
+    if (isNaN(requestedDuration)) {
+      return res.status(400).json({ error: 'Invalid duration.' });
+    }
+
+    const oldPlan = await Plan.findById(planId);
+    if (!oldPlan) {
       return res.status(404).json({ error: 'Plan not found' });
     }
 
-    // Move plan to DeletedPlan collection with status replanned
+    // Move old plan to DeletedPlan collection with status replanned
     const deletedPlan = new DeletedPlan({
-      category: plan.category,
-      adaptedForThirdAge: plan.adaptedForThirdAge,
-      adaptedForChildren: plan.adaptedForChildren,
-      duration: plan.duration,
-      numberOfWeeks: plan.numberOfWeeks,
-      sessionsPerWeek: plan.sessionsPerWeek,
-      exercises: plan.exercises,
-      userId: plan.userId,
-      username: plan.username,
+      category: oldPlan.category,
+      adaptedForThirdAge: oldPlan.adaptedForThirdAge,
+      adaptedForChildren: oldPlan.adaptedForChildren,
+      duration: oldPlan.duration,
+      numberOfWeeks: oldPlan.numberOfWeeks,
+      sessionsPerWeek: oldPlan.sessionsPerWeek,
+      exercises: oldPlan.exercises,
+      userId: oldPlan.userId,
+      username: oldPlan.username,
       status: 'replanned'
     });
     await deletedPlan.save();
 
-    // Delete the plan from Plan collection
+    // Delete the old plan from Plan collection
     await Plan.findByIdAndDelete(planId);
 
-    // Remove plan reference from user's plansByCategory
+    // Remove old plan reference from user's plansByCategory
     await User.updateOne(
       { _id: userId },
       { $pull: { plansByCategory: { plan: planId } } }
     );
 
-    // Generate new plan
     let query = { cat: category };
 
     if (adaptedForChildren === 'true') {
@@ -199,61 +251,55 @@ export const replan = async (req, res) => {
       return res.status(404).json({ error: 'No exercises found for your criteria' });
     }
 
-    const oldExerciseIds = plan.exercises.map(exercise => exercise._id);
-    const filteredPosts = posts.filter(post => !oldExerciseIds.includes(post._id));
-    const shuffledPosts = filteredPosts.sort(() => 0.5 - Math.random());
+    const dislikedPosts = user.dislikedPosts || [];
+    const filteredPosts = posts.filter(post => !dislikedPosts.includes(post._id));
 
-    const exercises = shuffledPosts.map(post => ({
-      ...post,
-      totalDuration: (post.duration.hours * 60) + post.duration.minutes + (post.duration.seconds / 60)
-    })).sort((a, b) => b.rating - a.rating);
+    const numVideos = filteredPosts.length;
+    const maxPossibleDuration = numVideos * MAX_DURATION;
+    const minPossibleDuration = numVideos * MIN_DURATION;
 
-    let selectedExercises = [];
-    let totalDuration = 0;
-
-    for (let exercise of exercises) {
-      if (selectedExercises.length >= 5) break;
-      if (totalDuration + exercise.totalDuration <= duration) {
-        selectedExercises.push(exercise);
-        totalDuration += exercise.totalDuration;
-      } else {
-        break;
-      }
+    if (requestedDuration > maxPossibleDuration) {
+      return res.status(400).json({ error: `Requested duration exceeds the maximum possible duration of ${maxPossibleDuration} minutes with the available exercises.` });
     }
 
-    if (totalDuration < duration) {
-      for (let exercise of exercises) {
-        if (selectedExercises.length >= 5) break;
-        if (!selectedExercises.includes(exercise) && (totalDuration + exercise.totalDuration) <= duration) {
-          selectedExercises.push(exercise);
-          totalDuration += exercise.totalDuration;
-        }
-        if (totalDuration >= duration) break;
-      }
+    if (requestedDuration < minPossibleDuration) {
+      return res.status(400).json({ error: `Requested duration is less than the minimum possible duration of ${minPossibleDuration} minutes with the available exercises.` });
     }
 
-    if (selectedExercises.length === 0) {
-      return res.status(400).json({ error: 'No suitable exercises found for the requested duration' });
-    }
+    let selectedExercises = filteredPosts.slice(0, 3);
+    let durations = selectedExercises.map(() => getRandomInt(MIN_DURATION, MAX_DURATION));
+
+    distributeDurations(durations, requestedDuration);
+
+    selectedExercises = selectedExercises.map((exercise, index) => ({
+      ...exercise,
+      sets: getRandomInt(MIN_SETS, MAX_SETS),
+      turns: getRandomInt(MIN_REPS, MAX_REPS),
+      exerciseDuration: durations[index]
+    }));
+
+    const plan = selectedExercises.map(exercise => ({
+      title: exercise.title,
+      explanation: exercise.explanation,
+      videoUrl: exercise.videoUrl,
+      duration: exercise.exerciseDuration, // Total duration in minutes
+      category: exercise.cat,
+      adaptedForThirdAge: exercise.adaptedForThirdAge,
+      adaptedForChildren: exercise.adaptedForChildren,
+      sets: exercise.sets,
+      turns: exercise.turns
+    }));
 
     const newPlan = new Plan({
       category,
       adaptedForThirdAge: adaptedForThirdAge === 'true',
       adaptedForChildren: adaptedForChildren === 'true',
-      duration: totalDuration,
+      duration: requestedDuration,
       numberOfWeeks: parseInt(numberOfWeeks, 10),
       sessionsPerWeek: parseInt(sessionsPerWeek, 10),
-      exercises: selectedExercises.map(exercise => ({
-        title: exercise.title,
-        explanation: exercise.explanation,
-        videoUrl: exercise.videoUrl,
-        duration: exercise.totalDuration,
-        category: exercise.cat,
-        adaptedForThirdAge: exercise.adaptedForThirdAge,
-        adaptedForChildren: exercise.adaptedForChildren,
-      })),
+      exercises: plan,
       userId: userId,
-      username: plan.username
+      username: user.username
     });
 
     await newPlan.save();
