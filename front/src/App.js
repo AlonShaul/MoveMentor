@@ -15,6 +15,7 @@ import { AuthProvider } from "./context/authContext";
 import { CategoryProvider } from "./context/CategoryContext";
 import { ApiProvider } from "./context/ApiContext";
 import PrivateRoute from "./components/PrivateRoute"; 
+import Bot from "./pages/Bot"; // Import the Bot component
 import "./style.scss";
 import backgroundImage from "./img/wp7935249.jpg";
 
@@ -26,6 +27,7 @@ const Layout = () => {
         <Outlet />
       </div>
       <Footer />
+      <Bot /> {/* Add the Bot component here */}
     </div>
   );
 };
