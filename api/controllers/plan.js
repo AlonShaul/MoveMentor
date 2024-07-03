@@ -53,6 +53,10 @@ export const generatePlan = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    if (user.planGroups.length >= 5) {
+      return res.status(400).json({ error: 'You have reached the limit of 5 plan groups. Please delete a plan group before creating a new one.' });
+    }
+
     const requestedDuration = parseInt(duration, 10);
     if (isNaN(requestedDuration)) {
       return res.status(400).json({ error: 'Invalid duration.' });
@@ -99,7 +103,8 @@ export const generatePlan = async (req, res) => {
       return res.status(400).json({ error: `Requested duration is less than the minimum possible duration of ${minPossibleDuration} minutes with the available exercises.` });
     }
 
-    const plans = [];
+    const plansByWeek = {};
+    const newPlans = [];
 
     for (let week = 0; week < numWeeks; week++) {
       let selectedExercises = filteredPosts.slice(0, exercisesPerSession);
@@ -120,7 +125,7 @@ export const generatePlan = async (req, res) => {
         adaptedForThirdAge: age > 65,
         adaptedForChildren: age < 14,
         duration: requestedDuration,
-        numberOfWeeks: numWeeks, // Keep the original number of weeks
+        numberOfWeeks: numWeeks,
         sessionsPerWeek: sessionsPerWeekNum,
         exercises: selectedExercises,
         userId: user._id,
@@ -128,26 +133,21 @@ export const generatePlan = async (req, res) => {
       });
 
       await newPlan.save();
-      plans.push(newPlan);
-      user.plansByCategory.push({ category, plan: newPlan._id });
+      plansByWeek[`week_${week + 1}`] = newPlan;
+      newPlans.push(newPlan._id);
     }
+
+    const planGroupName = `Plan Group ${user.planGroups.length + 1}`;
+    user.planGroups.push({ groupName: planGroupName, category, plans: newPlans });
 
     await user.save();
 
-    res.status(201).json({ message: 'Plans generated successfully', plans });
+    res.status(201).json({ message: 'Plans generated successfully', plansByWeek, planGroupName });
   } catch (error) {
     console.error('Error generating plans:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
-// The deletePlan and replan functions remain unchanged
-
-
-
-
-
-
 
 
 export const deletePlan = async (req, res) => {
@@ -179,10 +179,15 @@ export const deletePlan = async (req, res) => {
 
     await Plan.findByIdAndDelete(planId);
 
-    await User.updateOne(
-      { _id: userId },
-      { $pull: { plansByCategory: { plan: planId } } }
-    );
+    const user = await User.findById(userId);
+    user.planGroups.forEach(group => {
+      group.plans = group.plans.filter(id => !id.equals(planId));
+    });
+
+    // Remove empty plan groups
+    user.planGroups = user.planGroups.filter(group => group.plans.length > 0);
+
+    await user.save();
 
     res.status(200).json({ message: 'Plan deleted successfully' });
   } catch (error) {
@@ -190,6 +195,7 @@ export const deletePlan = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 export const replan = async (req, res) => {
   try {
@@ -235,11 +241,15 @@ export const replan = async (req, res) => {
     // Delete the old plan from Plan collection
     await Plan.findByIdAndDelete(planId);
 
-    // Remove old plan reference from user's plansByCategory
-    await User.updateOne(
-      { _id: userId },
-      { $pull: { plansByCategory: { plan: planId } } }
-    );
+    // Remove old plan reference from user's planGroups
+    user.planGroups.forEach(group => {
+      group.plans = group.plans.filter(id => !id.equals(planId));
+    });
+
+    // Remove empty plan groups
+    user.planGroups = user.planGroups.filter(group => group.plans.length > 0);
+
+    await user.save();
 
     let query = { cat: category };
 
@@ -270,7 +280,9 @@ export const replan = async (req, res) => {
       return res.status(400).json({ error: `Requested duration is less than the minimum possible duration of ${minPossibleDuration} minutes with the available exercises.` });
     }
 
-    let totalPlans = [];
+    const newPlans = [];
+    const plansByWeek = {};
+
     for (let week = 0; week < weeks; week++) {
       for (let session = 0; session < sessions; session++) {
         const exercisesPerSession = 6 - sessions; // 5 for 1 session, 4 for 2 sessions, 3 for 3 sessions per week
@@ -288,47 +300,56 @@ export const replan = async (req, res) => {
           ...exercise,
           sets: getRandomInt(MIN_SETS, MAX_SETS),
           turns: getRandomInt(MIN_REPS, MAX_REPS),
-          exerciseDuration: durations[index]
+          duration: durations[index],
+          category: exercise.cat
         }));
 
-        const plan = selectedExercises.map(exercise => ({
-          title: exercise.title,
-          explanation: exercise.explanation,
-          videoUrl: exercise.videoUrl,
-          duration: exercise.exerciseDuration, // Total duration in minutes
-          category: exercise.cat,
-          adaptedForThirdAge: exercise.adaptedForThirdAge,
-          adaptedForChildren: exercise.adaptedForChildren,
-          sets: exercise.sets,
-          turns: exercise.turns
-        }));
-
-        totalPlans.push({
+        const newPlan = new Plan({
           category,
           adaptedForThirdAge: adaptedForThirdAge === 'true',
           adaptedForChildren: adaptedForChildren === 'true',
           duration: requestedDuration,
           numberOfWeeks: weeks,
           sessionsPerWeek: sessions,
-          exercises: plan,
-          userId: userId,
+          exercises: selectedExercises,
+          userId: user._id,
           username: user.username
         });
+
+        await newPlan.save();
+        newPlans.push(newPlan._id);
+        plansByWeek[`week_${week + 1}`] = newPlan;
       }
     }
 
-    for (let newPlan of totalPlans) {
-      const plan = new Plan(newPlan);
-      await plan.save();
-
-      user.plansByCategory.push({ category, plan: plan._id });
-    }
+    const newPlanGroupName = `Plan Group ${user.planGroups.length + 1}`;
+    user.planGroups.push({ groupName: newPlanGroupName, category, plans: newPlans });
 
     await user.save();
 
-    res.status(201).json({ message: 'Plan replanned successfully', plans: totalPlans });
+    res.status(201).json({ message: 'Plan replanned successfully', plans: newPlans, newPlanGroupName });
   } catch (error) {
     console.error('Error replanning:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+export const getPlanById = async (req, res) => {
+  try {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ error: 'Plan ID is required' });
+    }
+
+    const plan = await Plan.findById(id);
+    if (!plan) {
+      return res.status(404).json({ error: 'Plan not found' });
+    }
+
+    res.status(200).json(plan);
+  } catch (error) {
+    console.error('Error fetching plan:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };

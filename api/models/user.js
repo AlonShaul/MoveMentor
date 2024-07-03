@@ -5,10 +5,11 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['admin', 'user'], default: 'user' },
-  plansByCategory: [
+  planGroups: [
     {
+      groupName: { type: String, required: true },
       category: { type: String, required: true },
-      plan: { type: mongoose.Schema.Types.ObjectId, ref: 'Plan' }
+      plans: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Plan' }]
     }
   ]
 }, { timestamps: true });
