@@ -4,14 +4,13 @@ import { useCategories } from '../context/CategoryContext';
 import axios from 'axios';
 import { useApi } from '../context/ApiContext';
 import { Link } from 'react-router-dom';
-import StarRating from "../components/StarRating"; // Import the StarRating component
 
 const UserProfile = () => {
   const { currentUser } = useContext(AuthContext);
   const { categories } = useCategories();
   const apiUrl = useApi();
   const [userDetails, setUserDetails] = useState(null);
-  const [plans, setPlans] = useState([]);
+  const [planGroups, setPlanGroups] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [error, setError] = useState('');
 
@@ -29,29 +28,42 @@ const UserProfile = () => {
       }
     };
 
-    const fetchUserPlans = async () => {
+    const fetchUserPlanGroups = async () => {
       try {
-        const res = await axios.get(`${apiUrl}/api/users/${currentUser._id}/plans-by-category`, {
+        const res = await axios.get(`${apiUrl}/api/users/${currentUser._id}/plan-groups`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
+    
         if (res.data.length > 0) {
-          const sortedPlans = res.data.sort((a, b) => new Date(b.plan.date) - new Date(a.plan.date));
-          setPlans(sortedPlans);
+          const populatedGroups = await Promise.all(res.data.map(async group => {
+            const plans = await Promise.all(group.plans.map(async planId => {
+              const planRes = await axios.get(`${apiUrl}/api/plans/getPlan`, {
+                params: { id: planId },
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+              });
+              return planRes.data;
+            }));
+            return { ...group, plans };
+          }));
+          setPlanGroups(populatedGroups);
         }
       } catch (err) {
         console.log(err);
       }
     };
-
+    
+    
     if (currentUser) {
       fetchUserDetails();
-      fetchUserPlans();
+      fetchUserPlanGroups();
     }
   }, [currentUser, apiUrl]);
 
-  const deletePlan = async (planId) => {
+  const deletePlan = async (planId, groupId) => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${apiUrl}/api/plans/delete`, {
@@ -64,13 +76,22 @@ const UserProfile = () => {
           'Content-Type': 'application/json'
         }
       });
-      setPlans((prevPlans) => prevPlans.filter(plan => plan.plan._id !== planId));
+      setPlanGroups((prevGroups) => {
+        return prevGroups
+          .map(group => {
+            if (group._id === groupId) {
+              group.plans = group.plans.filter(plan => plan._id !== planId);
+            }
+            return group;
+          })
+          .filter(group => group.plans.length > 0);
+      });
     } catch (err) {
       console.log(err);
     }
   };
 
-  const replan = async (planId, category, duration, adaptedForThirdAge, adaptedForChildren, numberOfWeeks, sessionsPerWeek) => {
+  const replan = async (planId, groupId, category, duration, adaptedForThirdAge, adaptedForChildren, numberOfWeeks, sessionsPerWeek) => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${apiUrl}/api/plans/replan`, {
@@ -90,8 +111,17 @@ const UserProfile = () => {
         }
       });
       if (response.status === 201) {
-        const newPlan = response.data.plan;
-        setPlans((prevPlans) => prevPlans.map(plan => (plan.plan._id === planId ? { ...plan, plan: newPlan } : plan)));
+        const newPlans = response.data.plans;
+        const newPlanGroupName = response.data.newPlanGroupName;
+        setPlanGroups((prevGroups) => {
+          return prevGroups.map(group => {
+            if (group._id === groupId) {
+              group.plans = newPlans;
+              group.groupName = newPlanGroupName;
+            }
+            return group;
+          }).filter(group => group.plans.length > 0);
+        });
       } else {
         console.error(response.data.error);
       }
@@ -100,88 +130,14 @@ const UserProfile = () => {
     }
   };
 
-  const renderStars = (rating, index) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <button
-          key={i}
-          type="button"
-          className={`text-2xl ${i <= rating ? "text-yellow-500" : "text-gray-300"}`}
-          onClick={() => handleRating(index, i)}
-        >
-          &#9733;
-        </button>
-      );
-    }
-    return stars;
-  };
-
-  const handleRating = (exerciseIndex, rating, planIndex) => {
-    setPlans(prevPlans => {
-      const updatedPlans = [...prevPlans];
-      const updatedExercises = updatedPlans[planIndex].plan.exercises.map((exercise, index) => {
-        if (index === exerciseIndex) {
-          return { ...exercise, rating: rating };
-        }
-        return exercise;
-      });
-      updatedPlans[planIndex].plan.exercises = updatedExercises;
-      return updatedPlans;
-    });
-  };
-
-  const handleLike = (exerciseIndex, planIndex) => {
-    setPlans(prevPlans => {
-      const updatedPlans = [...prevPlans];
-      const updatedExercises = updatedPlans[planIndex].plan.exercises.map((exercise, index) => {
-        if (index === exerciseIndex) {
-          return { ...exercise, liked: true, disliked: false };
-        }
-        return exercise;
-      });
-      updatedPlans[planIndex].plan.exercises = updatedExercises;
-      return updatedPlans;
-    });
-  };
-
-  const handleDislike = (exerciseIndex, planIndex) => {
-    setPlans(prevPlans => {
-      const updatedPlans = [...prevPlans];
-      const updatedExercises = updatedPlans[planIndex].plan.exercises.map((exercise, index) => {
-        if (index === exerciseIndex) {
-          return { ...exercise, liked: false, disliked: true };
-        }
-        return exercise;
-      });
-      updatedPlans[planIndex].plan.exercises = updatedExercises;
-      return updatedPlans;
-    });
-  };
-
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
   };
 
-  const groupPlansByCategory = (plans) => {
-    const grouped = plans.reduce((acc, planWrapper) => {
-      if (!acc[planWrapper.category]) {
-        acc[planWrapper.category] = [];
-      }
-      acc[planWrapper.category].push(planWrapper);
-      return acc;
-    }, {});
+  const filteredPlanGroups = selectedCategory
+    ? planGroups.filter(group => group.category === selectedCategory)
+    : planGroups;
 
-    Object.keys(grouped).forEach(category => {
-      grouped[category] = grouped[category].slice(0, 5);
-    });
-
-    return grouped;
-  };
-
-  const groupedPlans = groupPlansByCategory(plans || []);
-  const filteredPlans = selectedCategory ? groupedPlans[selectedCategory] || [] : Object.values(groupedPlans).flat();
-  console.log(filteredPlans);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -207,7 +163,7 @@ const UserProfile = () => {
         <p><strong>Role:</strong> {userDetails.role}</p>
       </div>
       <div className="user-plans bg-white p-4 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold mb-4 text-center">Your Plans</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">Your Plan Groups</h2>
         <div className="mb-4">
           <label className="block text-white text-sm font-bold mb-2">Select Category</label>
           <select
@@ -224,68 +180,70 @@ const UserProfile = () => {
           </select>
         </div>
         {error && <p className="text-red-500">{error}</p>}
-        {filteredPlans.length > 0 ? (
-          filteredPlans.map((planWrapper, planIndex) => (
-            <div key={planWrapper._id} className="plan mb-4">
-              <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-lg mb-6 text-center shadow-lg">
-                <p className="text-xl font-semibold text-blue-700"><strong>Category:</strong> {planWrapper.category}</p>
-                {planWrapper.plan && typeof planWrapper.plan === 'object' && (
-                  <>
-                    <p className="text-xl font-semibold text-blue-700"><strong>Number of Weeks:</strong> {planWrapper.plan.numberOfWeeks}</p>
-                    <p className="text-xl font-semibold text-blue-700"><strong>Sessions per Week:</strong> {planWrapper.plan.sessionsPerWeek}</p>
-                    <p className="text-xl font-semibold text-blue-700"><strong>Date:</strong> {formatDate(planWrapper.plan.date)}</p>
-                    <p className="text-xl font-semibold text-blue-700"><strong>Total Duration:</strong> {planWrapper.plan.duration} minutes</p>
+        {filteredPlanGroups.length > 0 ? (
+          filteredPlanGroups.map((group, groupIndex) => (
+            <div key={groupIndex}>
+              <h3 className="text-lg font-bold mb-2 text-center">{group.groupName} - {group.category}</h3>
+              {group.plans.map((plan, planIndex) => (
+                <div key={plan._id} className="plan mb-4">
+                  <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-lg mb-6 text-center shadow-lg">
+                    <p className="text-xl font-semibold text-blue-700"><strong>Category:</strong> {group.category}</p>
+                    <p className="text-xl font-semibold text-blue-700"><strong>Number of Weeks:</strong> {plan.numberOfWeeks}</p>
+                    <p className="text-xl font-semibold text-blue-700"><strong>Sessions per Week:</strong> {plan.sessionsPerWeek}</p>
+                    <p className="text-xl font-semibold text-blue-700"><strong>Date:</strong> {formatDate(plan.date)}</p>
+                    <p className="text-xl font-semibold text-blue-700"><strong>Total Duration:</strong> {plan.duration} minutes</p>
                     <button
                       className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-200"
-                      onClick={() => deletePlan(planWrapper.plan._id)}
+                      onClick={() => deletePlan(plan._id, group._id)}
                     >
                       Delete Plan
                     </button>
                     <button
                       className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-200 ml-2"
-                      onClick={() => replan(planWrapper.plan._id, planWrapper.category, planWrapper.plan.duration, planWrapper.plan.adaptedForThirdAge, planWrapper.plan.adaptedForChildren, planWrapper.plan.numberOfWeeks, planWrapper.plan.sessionsPerWeek)}
+                      onClick={() => replan(plan._id, group._id, group.category, plan.duration, plan.adaptedForThirdAge, plan.adaptedForChildren, plan.numberOfWeeks, plan.sessionsPerWeek)}
                     >
                       Replan
                     </button>
-                  </>
-                )}
-              </div>
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Video</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sets / Reps </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Third Age</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Children</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Duration</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {planWrapper.plan && planWrapper.plan.exercises && planWrapper.plan.exercises.map((exercise, exerciseIndex) => (
-                    <tr key={exerciseIndex}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exercise.title}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {exercise.videoUrl && (
-                          <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
-                            Video
-                          </a>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sets : {exercise.sets} / Reps : {exercise.turns} </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.duration} minutes</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </div>
+                  <h1 className='text-lg font-bold mb-2 text-center'>Week {planIndex+1}</h1>
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead>
+                      <tr>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Video</th>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sets / Reps</th>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Third Age</th>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Children</th>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Duration</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {plan.exercises.map((exercise, exerciseIndex) => (
+                        <tr key={exerciseIndex}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exercise.title}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {exercise.videoUrl && (
+                              <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
+                                Video
+                              </a>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sets: {exercise.sets} / Reps: {exercise.turns}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.duration} minutes</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
             </div>
           ))
         ) : (
-          <p>No plans found for the selected category.</p>
+          <p>No plan groups found for the selected category.</p>
         )}
       </div>
       <div className="mt-8">
