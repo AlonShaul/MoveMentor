@@ -59,7 +59,7 @@ const Single = () => {
   const formatDuration = (duration) => {
     if (!duration) return "";
     const { hours, minutes, seconds } = duration;
-    return `${hours}h ${minutes}m ${seconds}s`;
+    return `${hours || 0}h ${minutes || 0}m ${seconds || 0}s`;
   };
 
   const renderStars = () => {
@@ -83,7 +83,7 @@ const Single = () => {
 
   const updateRating = async (newRating) => {
     try {
-      await axios.put(`${apiUrl}/api/posts/${postId}`, { rating: newRating }, {
+      await axios.put(`${apiUrl}/api/posts/${postId}/rate`, { rating: newRating }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -98,7 +98,7 @@ const Single = () => {
 
   const handleLike = async () => {
     try {
-      await axios.put(`${apiUrl}/api/posts/${postId}`, { liked: true }, {
+      await axios.put(`${apiUrl}/api/posts/${postId}/like`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -114,7 +114,7 @@ const Single = () => {
 
   const handleDislike = async () => {
     try {
-      await axios.put(`${apiUrl}/api/posts/${postId}`, { disliked: true }, {
+      await axios.put(`${apiUrl}/api/posts/${postId}/dislike`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -137,7 +137,6 @@ const Single = () => {
       </div>
       <div className="content text-center space-y-4">
         <div className="user flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
-
           {(currentUser?.username === post.username || currentUser?.role === 'admin') && (
             <div className="edit flex space-x-4">
               <Link to={`/write?edit=${postId}`} state={post}>
@@ -148,7 +147,7 @@ const Single = () => {
           )}
         </div>
         <h1 className="text-2xl font-bold">{post.title}</h1>
-        <p className="text-base">{getText(post.explanation)}</p>
+        <div dangerouslySetInnerHTML={{ __html: post.explanation }} />
         {post.videoUrl && (
           <div className="video space-y-2">
             <video className="videoPosts w-full max-w-full h-auto md:w-1/2 md:mx-auto" controls>
@@ -162,8 +161,8 @@ const Single = () => {
           <table className="w-1/2 mx-auto divide-y divide-gray-200 text-center">
             <tbody className="bg-white divide-y divide-gray-200">
               <tr>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Duration:</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDuration(post.duration)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Duration:</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDuration(post.duration)}</td>
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Adapted for Third Age:</td>

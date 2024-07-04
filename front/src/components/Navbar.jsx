@@ -42,7 +42,7 @@ const Navbar = () => {
       <div className="container mx-auto px-2 flex justify-between items-center h-full"> {/* Changed px-4 to px-2 to move the logo left */}
         <div className="flex items-center space-x-8">
           <div className="logo">
-            <Link to="/">
+            <Link to="/about">
               <img src={Logo} alt="Logo" className="h-20" /> {/* Increased the logo size */}
             </Link>
           </div>

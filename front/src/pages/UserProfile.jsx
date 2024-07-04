@@ -12,7 +12,9 @@ const UserProfile = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [planGroups, setPlanGroups] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('exercises');
+  const [hoverRatings, setHoverRatings] = useState({});
+  const [userRatings, setUserRatings] = useState({});
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -35,7 +37,7 @@ const UserProfile = () => {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-    
+
         if (res.data.length > 0) {
           const populatedGroups = await Promise.all(res.data.map(async group => {
             const plans = await Promise.all(group.plans.map(async planId => {
@@ -55,8 +57,7 @@ const UserProfile = () => {
         console.log(err);
       }
     };
-    
-    
+
     if (currentUser) {
       fetchUserDetails();
       fetchUserPlanGroups();
@@ -111,12 +112,23 @@ const UserProfile = () => {
         }
       });
       if (response.status === 201) {
-        const newPlans = response.data.plans;
-        const newPlanGroupName = response.data.newPlanGroupName;
+        const newPlans = response.data.plansByWeek;
+        const newPlanGroupName = response.data.planGroupName;
+        const newPlansPopulated = await Promise.all(
+          Object.values(newPlans).map(async plan => {
+            const planRes = await axios.get(`${apiUrl}/api/plans/getPlan`, {
+              params: { id: plan._id },
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+              }
+            });
+            return planRes.data;
+          })
+        );
         setPlanGroups((prevGroups) => {
           return prevGroups.map(group => {
             if (group._id === groupId) {
-              group.plans = newPlans;
+              group.plans = newPlansPopulated;
               group.groupName = newPlanGroupName;
             }
             return group;
@@ -132,6 +144,79 @@ const UserProfile = () => {
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
+  };
+
+  const handleLike = async (exerciseId, postId, planId) => {
+    try {
+      await axios.put(`${apiUrl}/api/posts/${postId}/like`, {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setPlanGroups((prevGroups) => {
+        return prevGroups.map(group => ({
+          ...group,
+          plans: group.plans.map(plan => 
+            plan._id === planId ? {
+              ...plan,
+              exercises: plan.exercises.map(exercise => 
+                exercise._id === exerciseId ? { ...exercise, liked: true, disliked: false } : exercise
+              )
+            } : plan
+          )
+        }));
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleDislike = async (exerciseId, postId, planId) => {
+    try {
+      await axios.put(`${apiUrl}/api/posts/${postId}/dislike`, {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setPlanGroups((prevGroups) => {
+        return prevGroups.map(group => ({
+          ...group,
+          plans: group.plans.map(plan => 
+            plan._id === planId ? {
+              ...plan,
+              exercises: plan.exercises.map(exercise => 
+                exercise._id === exerciseId ? { ...exercise, liked: false, disliked: true } : exercise
+              )
+            } : plan
+          )
+        }));
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const updateRating = async (exerciseId, postId, newRating) => {
+    try {
+      await axios.put(`${apiUrl}/api/posts/${postId}/rate`, { rating: newRating }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setPlanGroups((prevGroups) => {
+        return prevGroups.map(group => ({
+          ...group,
+          plans: group.plans.map(plan => ({
+            ...plan,
+            exercises: plan.exercises.map(exercise => 
+              exercise._id === exerciseId ? { ...exercise, userRating: newRating } : exercise
+            )
+          }))
+        }));
+      });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const filteredPlanGroups = selectedCategory
@@ -179,12 +264,11 @@ const UserProfile = () => {
             ))}
           </select>
         </div>
-        {error && <p className="text-red-500">{error}</p>}
         {filteredPlanGroups.length > 0 ? (
           filteredPlanGroups.map((group, groupIndex) => (
             <div key={groupIndex}>
               <h3 className="text-lg font-bold mb-2 text-center">{group.groupName} - {group.category}</h3>
-              {group.plans.map((plan, planIndex) => (
+              {group.plans && group.plans.map((plan, planIndex) => (
                 <div key={plan._id} className="plan mb-4">
                   <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-lg mb-6 text-center shadow-lg">
                     <p className="text-xl font-semibold text-blue-700"><strong>Category:</strong> {group.category}</p>
@@ -205,39 +289,127 @@ const UserProfile = () => {
                       Replan
                     </button>
                   </div>
-                  <h1 className='text-lg font-bold mb-2 text-center'>Week {planIndex+1}</h1>
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Video</th>
-                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sets / Reps</th>
-                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Third Age</th>
-                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Children</th>
-                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Duration</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {plan.exercises.map((exercise, exerciseIndex) => (
-                        <tr key={exerciseIndex}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exercise.title}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {exercise.videoUrl && (
-                              <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
-                                Video
-                              </a>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sets: {exercise.sets} / Reps: {exercise.turns}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.duration} minutes</td>
+                  <h1 className='text-lg font-bold mb-2 text-center'>Week {planIndex + 1}</h1>
+                  <div className="tabs mb-4">
+                    <button
+                      className={`tab-button ${activeTab === 'exercises' ? 'active' : ''} py-2 px-4`}
+                      onClick={() => setActiveTab('exercises')}
+                    >
+                      Exercises
+                    </button>
+                    <button
+                      className={`tab-button ${activeTab === 'feedback' ? 'active' : ''} py-2 px-4`}
+                      onClick={() => setActiveTab('feedback')}
+                    >
+                      Feedback
+                    </button>
+                  </div>
+                  {activeTab === 'exercises' ? (
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Video</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sets / Reps</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Third Age</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Children</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Duration</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {plan.exercises.map((exercise, exerciseIndex) => (
+                          <tr key={exerciseIndex}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exercise.title}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {exercise.videoUrl && (
+                                <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
+                                  Video
+                                </a>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sets: {exercise.sets} / Reps: {exercise.turns}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.duration} minutes</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Video</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Like</th>
+                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dislike</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {plan.exercises.map((exercise, exerciseIndex) => {
+                          const userRating = exercise.userRating || exercise.avgRating;
+                          const hoverRating = hoverRatings[exercise._id] || userRating;
+                          return (
+                            <tr key={exerciseIndex}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exercise.title}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {exercise.videoUrl && (
+                                  <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
+                                    Video
+                                  </a>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <div className="flex items-center">
+                                  {currentUser && (
+                                    <div className="ml-2 flex">
+                                      {[...Array(5)].map((_, i) => (
+                                        <button
+                                          key={i}
+                                          type="button"
+                                          className={`text-2xl ${i + 1 <= hoverRating ? "text-yellow-500" : "text-gray-300"}`}
+                                          onClick={() => updateRating(exercise._id, exercise.postId, i + 1)}
+                                          onMouseEnter={() => setHoverRatings(prev => ({ ...prev, [exercise._id]: i + 1 }))}
+                                          onMouseLeave={() => setHoverRatings(prev => ({ ...prev, [exercise._id]: null }))}
+                                        >
+                                          &#9733;
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <button
+                                  onClick={() => handleLike(exercise._id, exercise.postId, plan._id)}
+                                  className={`text-2xl transform transition-transform ${exercise.liked ? "text-blue-500 scale-125" : "text-gray-300"}`}
+                                  onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                                  onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                                >
+                                  &#128077;
+                                </button>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <button
+                                  onClick={() => handleDislike(exercise._id, exercise.postId, plan._id)}
+                                  className={`text-2xl transform transition-transform ${exercise.disliked ? "text-red-500 scale-125" : "text-gray-300"}`}
+                                  onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                                  onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                                >
+                                  &#128078;
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               ))}
             </div>

@@ -6,14 +6,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useCategories } from "../context/CategoryContext";
 import { AuthContext } from "../context/authContext";
 import { useApi } from "../context/ApiContext";
-import backgroundImage from "../img/wp7935249.jpg"; // Import the background image
+import backgroundImage from "../img/wp7935249.jpg";
 
 const Write = () => {
   const location = useLocation();
   const state = location.state || {};
   const postId = state._id || null; // Ensure the postId is correctly set from state
   const [title, setTitle] = useState(state.title || "");
-  const [value, setValue] = useState(state.desc || "");
+  const [value, setValue] = useState(state.explanation || ""); // Correct the field name here
   const [videoUrl, setVideoUrl] = useState(state.videoUrl || "");
   const [minutes, setMinutes] = useState(state.duration?.minutes || 0);
   const [seconds, setSeconds] = useState(state.duration?.seconds || 0);
@@ -21,7 +21,6 @@ const Write = () => {
   const [adaptedForChildren, setAdaptedForChildren] = useState(state.adaptedForChildren || false);
   const [cat, setCat] = useState(state.cat || "");
   const [isUploading, setIsUploading] = useState(false);
-
   const navigate = useNavigate();
   const { categories } = useCategories();
   const { currentUser } = useContext(AuthContext);
@@ -70,11 +69,14 @@ const Write = () => {
       minutes: parseInt(minutes, 10),
       seconds: parseInt(seconds, 10)
     };
+
+    // Debugging logs to verify data
+
   
     try {
       const postData = {
         title,
-        explanation: value,
+        explanation: value, // Ensure value is correctly mapped to explanation
         videoUrl,
         duration,
         adaptedForThirdAge,
@@ -100,7 +102,7 @@ const Write = () => {
         });
       }
   
-      console.log(res); // Log the data to be sent to the server
+      console.log('Response:', res); // Log the data to be sent to the server
       navigate(`/?cat=${cat}`);
     } catch (err) {
       console.log(err);
@@ -126,7 +128,9 @@ const Write = () => {
             className="editor"
             theme="snow"
             value={value}
-            onChange={setValue}
+            onChange={(content, delta, source, editor) => {
+              setValue(editor.getHTML()); // Ensure the value is correctly set
+            }}
           />
         </div>
         <div className="mb-10 p-4 bg-blue-50 rounded-lg shadow-md">
@@ -134,7 +138,7 @@ const Write = () => {
           <div className="grid grid-cols-1 gap-2">
             {categories.map((category) => (
               <div className="flex items-center justify-between" key={category}>
-                <label htmlFor={category} className="mx-0	flex-1 text-right">{category.charAt(0).toUpperCase() + category.slice(1)}</label>
+                <label htmlFor={category} className="mx-0 flex-1 text-right">{category.charAt(0).toUpperCase() + category.slice(1)}</label>
                 <input
                   type="radio"
                   checked={cat === category}

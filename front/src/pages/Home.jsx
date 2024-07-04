@@ -12,7 +12,6 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [postsPerPage, setPostsPerPage] = useState(2);
-
   const location = useLocation();
   const apiUrl = useApi();
   const { currentUser } = useAuth();

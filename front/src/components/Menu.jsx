@@ -46,7 +46,7 @@ const Menu = ({ cat, currentPostId }) => {
           >
             <div className="w-full h-40 mb-4">
               <video className="w-full h-full object-cover rounded-md" controls>
-                <source src={`${post.img}`} type="video/mp4" />
+                <source src={`${post.videoUrl}`} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
             </div>

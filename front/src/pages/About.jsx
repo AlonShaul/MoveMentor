@@ -1,23 +1,7 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useApi } from "../context/ApiContext";
+import React from "react";
 import backgroundImage from "../img/wp7935249.jpg"; // Import the background image
 
 const About = () => {
-  const [, setContent] = useState("");
-  const apiUrl = useApi();
-
-  useEffect(() => {
-    const fetchAboutContent = async () => {
-      try {
-        const res = await axios.get(`${apiUrl}/api/about`);
-        setContent(res.data);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    fetchAboutContent();
-  }, [apiUrl]);
 
   return (
     <div
