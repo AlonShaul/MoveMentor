@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 
 const ExerciseSchema = new mongoose.Schema({
+  postId: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', required: true }, // Add postId here
   title: { type: String, required: true },
   explanation: { type: String, required: true },
   videoUrl: { type: String, required: true },
   duration: { type: Number, required: true },
   category: { type: String, required: true },
+  rating: { type: Number, default: 0 },
   adaptedForThirdAge: { type: Boolean, required: true },
   adaptedForChildren: { type: Boolean, required: true },
   sets: { type: Number, required: true },

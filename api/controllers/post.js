@@ -141,35 +141,19 @@ export const addPost = async (req, res) => {
 export const updatePost = async (req, res) => {
   try {
     const postId = req.params.id;
-    const { rating, liked, disliked } = req.body;
-    const userId = req.user._id;
+    const { title, explanation, videoUrl, duration, adaptedForThirdAge, adaptedForChildren, cat } = req.body;
 
     const post = await Post.findById(postId);
     if (!post) return res.status(404).json("Post not found");
 
-    // Update or add the rating
-    if (rating !== undefined) {
-      const existingRating = post.ratings.find(r => r.userId.toString() === userId.toString());
-      if (existingRating) {
-        existingRating.value = rating;
-      } else {
-        post.ratings.push({ userId, value: rating });
-      }
-
-      // Recalculate the average rating
-      const totalRating = post.ratings.reduce((sum, r) => sum + r.value, 0);
-      post.rating = totalRating / post.ratings.length;
-    }
-
-    if (liked) {
-      if (!post.likes.includes(userId)) post.likes.push(userId);
-      post.dislikes = post.dislikes.filter(id => id.toString() !== userId.toString());
-    }
-
-    if (disliked) {
-      if (!post.dislikes.includes(userId)) post.dislikes.push(userId);
-      post.likes = post.likes.filter(id => id.toString() !== userId.toString());
-    }
+    // Update post fields
+    if (title !== undefined) post.title = title;
+    if (explanation !== undefined) post.explanation = explanation;
+    if (videoUrl !== undefined) post.videoUrl = videoUrl;
+    if (duration !== undefined) post.duration = duration;
+    if (adaptedForThirdAge !== undefined) post.adaptedForThirdAge = adaptedForThirdAge;
+    if (adaptedForChildren !== undefined) post.adaptedForChildren = adaptedForChildren;
+    if (cat !== undefined) post.cat = cat;
 
     const updatedPost = await post.save();
     res.status(200).json(updatedPost);
