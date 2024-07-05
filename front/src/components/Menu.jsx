@@ -8,23 +8,31 @@ const Menu = ({ cat, currentPostId }) => {
   const [visiblePosts, setVisiblePosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(true); // Loading state
   const postsPerPage = 2;
 
   const apiUrl = useApi();
-
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(`${apiUrl}/api/posts?cat=${cat}`);
-        const filteredPosts = res.data.filter(post => post._id !== currentPostId);
-        setPosts(filteredPosts);
-        setVisiblePosts(filteredPosts.slice(0, postsPerPage));
-        setHasMore(filteredPosts.length > postsPerPage);
+        if (cat) {
+          const res = await axios.get(`${apiUrl}/api/posts?cat=${cat}`);
+          const filteredPosts = res.data.filter(post => post._id !== currentPostId);
+          setPosts(filteredPosts);
+          const filteredByCategory = filteredPosts.filter(post => post.cat === cat);
+          setVisiblePosts(filteredByCategory.slice(0, postsPerPage));
+          setHasMore(filteredByCategory.length > postsPerPage);
+        }
       } catch (err) {
         console.log(err);
+      } finally {
+        setLoading(false); // Set loading to false after fetching
       }
     };
-    fetchData();
+    if (cat) {
+      fetchData();
+    }
   }, [cat, apiUrl, currentPostId]);
 
   const loadMorePosts = () => {
@@ -34,6 +42,10 @@ const Menu = ({ cat, currentPostId }) => {
     setCurrentPage(nextPage);
     setHasMore(posts.length > newVisiblePosts.length);
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // You can replace this with a spinner or any loading indicator
+  }
 
   return (
     posts.length > 0 && (

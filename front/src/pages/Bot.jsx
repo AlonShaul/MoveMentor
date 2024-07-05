@@ -16,17 +16,19 @@ const Bot = () => {
     sessionsPerWeek: '',
     numberOfWeeks: ''
   });
-
+  const [error, setError] = useState('');
   const apiUrl = useApi();
   const { currentUser } = useAuth();
+  const [plan, setPlan] = useState(null);
 
   const questions = [
     'What is your name?',
     'What is your injury type?',
-    'How much training time would you like?',
+    'How long would you like to practice the plan?',
     'How old are you?',
-    'How many training sessions a week?',
-    'How long is your rehabilitation?'
+    'How many training sessions per week?',
+    'What is your recovery time in weeks?',
+    'Would you like to generate the plan? (yes/no)'
   ];
 
   const handleSend = async () => {
@@ -54,6 +56,13 @@ const Bot = () => {
       case 5:
         updatedUserData.numberOfWeeks = userInput;
         break;
+      case 6:
+        if (userInput.toLowerCase() === 'yes') {
+          await generatePlan();
+        } else {
+          setMessages([...newMessages, { from: 'bot', text: 'Plan generation cancelled.' }]);
+        }
+        break;
       default:
         break;
     }
@@ -64,36 +73,44 @@ const Bot = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setMessages([...newMessages, { from: 'bot', text: questions[currentQuestion + 1] }]);
-    } else {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${apiUrl}/api/plans`, {
-          params: {
-            category: updatedUserData.category,
-            duration: updatedUserData.duration,
-            userId: currentUser._id,
-            age: updatedUserData.age
-          },
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.status === 200) {
-          const data = response.data;
-          await savePlanToUserProfile(data.plan._id);
-          setMessages([...newMessages, { from: 'bot', text: 'Your plan has been created successfully!' }]);
-        } else {
-          setMessages([...newMessages, { from: 'bot', text: `Failed to generate the plan: ${response.data.error}` }]);
-        }
-      } catch (error) {
-        console.error('Error fetching the plan:', error);
-        setMessages([...newMessages, { from: 'bot', text: `Failed to fetch the plan: ${error.message}` }]);
-      }
     }
 
     setUserInput('');
+  };
+
+  const generatePlan = async () => {
+    try {
+      setError(''); // Clear previous errors
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${apiUrl}/api/plans`, {
+        params: {
+          category: userData.category,
+          duration: userData.duration,
+          userId: currentUser._id,
+          age: userData.age,
+          numberOfWeeks: userData.numberOfWeeks,
+          sessionsPerWeek: userData.sessionsPerWeek
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      if (response.status === 200) {
+        const data = response.data;
+        console.log('Generated Plan:', data.plan); // Debug log
+        setPlan(data.plan);
+        await savePlanToUserProfile(data.plan._id);
+        setMessages([...messages, { from: 'bot', text: 'Your plan has been created successfully!' }]);
+      } else {
+        setError(response.data.error);
+        setMessages([...messages, { from: 'bot', text: `Failed to generate the plan: ${response.data.error}` }]);
+      }
+    } catch (error) {
+      setError('Failed to fetch the plan');
+      setMessages([...messages, { from: 'bot', text: `Failed to fetch the plan: ${error.message}` }]);
+    }
   };
 
   const savePlanToUserProfile = async (planId) => {

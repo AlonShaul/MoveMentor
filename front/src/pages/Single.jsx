@@ -1,11 +1,13 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, Suspense, lazy } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import Menu from "../components/Menu";
 import axios from "axios";
 import { AuthContext } from "../context/authContext";
 import { useApi } from "../context/ApiContext";
 import Edit from "../img/edit.png";
 import Delete from "../img/delete.png";
+
+// Lazy load the Menu component
+const Menu = lazy(() => import("../components/Menu"));
 
 const Single = () => {
   const [post, setPost] = useState({});
@@ -18,13 +20,14 @@ const Single = () => {
   const postId = location.pathname.split("/")[2];
   const { currentUser } = useContext(AuthContext);
   const apiUrl = useApi();
+  const [category, setCategory] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await axios.get(`${apiUrl}/api/posts/${postId}`);
         setPost(res.data);
-
+        setCategory(res.data.cat);
         // Initialize rating state
         const userRating = res.data.ratings.find(r => r.userId === currentUser._id)?.value || 0;
         setUserRating(userRating);
@@ -203,7 +206,11 @@ const Single = () => {
           </table>
         </div>
       </div>
-      <Menu cat={post.cat} currentPostId={post._id} />
+      {category && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Menu cat={category} currentPostId={post._id} />
+        </Suspense>
+      )}
     </div>
   );
 };
