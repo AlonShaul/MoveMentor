@@ -184,20 +184,6 @@ export const deletePlan = async (req, res) => {
       return res.status(404).json({ error: 'Plan not found' });
     }
 
-    const deletedPlan = new DeletedPlan({
-      category: plan.category,
-      adaptedForThirdAge: plan.adaptedForThirdAge,
-      adaptedForChildren: plan.adaptedForChildren,
-      duration: plan.duration,
-      numberOfWeeks: plan.numberOfWeeks,
-      sessionsPerWeek: plan.sessionsPerWeek,
-      exercises: plan.exercises,
-      userId: plan.userId,
-      username: plan.username,
-      status: 'deleted'
-    });
-    await deletedPlan.save();
-
     await Plan.findByIdAndDelete(planId);
 
     const user = await User.findById(userId);
@@ -221,6 +207,8 @@ export const deletePlan = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
 export const replan = async (req, res) => {
   try {
     const { userId, planId, category, duration, age, numberOfWeeks, sessionsPerWeek } = req.query;
@@ -236,34 +224,19 @@ export const replan = async (req, res) => {
 
     user.planGroups = user.planGroups || [];
 
-    // First, delete the existing plan
-    const plan = await Plan.findById(planId);
-    if (!plan) {
-      return res.status(404).json({ error: 'Plan not found' });
+    // Find the plan group containing the specified planId
+    const groupIndex = user.planGroups.findIndex(group => group.plans.some(id => id.equals(planId)));
+    if (groupIndex === -1) {
+      return res.status(404).json({ error: 'Plan group not found' });
     }
 
-    const deletedPlan = new DeletedPlan({
-      category: plan.category,
-      adaptedForThirdAge: plan.adaptedForThirdAge,
-      adaptedForChildren: plan.adaptedForChildren,
-      duration: plan.duration,
-      numberOfWeeks: plan.numberOfWeeks,
-      sessionsPerWeek: plan.sessionsPerWeek,
-      exercises: plan.exercises,
-      userId: plan.userId,
-      username: plan.username,
-      status: 'deleted'
-    });
-    await deletedPlan.save();
+    const planGroup = user.planGroups[groupIndex];
 
-    await Plan.findByIdAndDelete(planId);
+    // Directly delete all plans in the group
+    await Plan.deleteMany({ _id: { $in: planGroup.plans } });
 
-    user.planGroups.forEach(group => {
-      group.plans = group.plans.filter(id => !id.equals(planId));
-    });
-
-    // Remove empty plan groups
-    user.planGroups = user.planGroups.filter(group => group.plans && group.plans.length > 0);
+    // Remove the empty plan group from user's planGroups
+    user.planGroups.splice(groupIndex, 1);
 
     await user.save();
 
@@ -370,6 +343,8 @@ export const replan = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
 
 
 export const getPlanById = async (req, res) => {
