@@ -231,6 +231,7 @@ export const replan = async (req, res) => {
     }
 
     const planGroup = user.planGroups[groupIndex];
+    const originalGroupName = planGroup.groupName;
 
     // Directly delete all plans in the group
     await Plan.deleteMany({ _id: { $in: planGroup.plans } });
@@ -332,18 +333,16 @@ export const replan = async (req, res) => {
       newPlans.push(newPlan);
     }
 
-    const planGroupName = `Plan Group ${user.planGroups.length + 1}`;
-    user.planGroups.push({ groupName: planGroupName, category, plans: newPlans.map(plan => plan._id) });
+    user.planGroups.push({ groupName: originalGroupName, category, plans: newPlans.map(plan => plan._id) });
 
     await user.save();
 
-    res.status(201).json({ message: 'Plans replanned successfully', plansByWeek, planGroupName });
+    res.status(201).json({ message: 'Plans replanned successfully', plansByWeek });
   } catch (error) {
     console.error('Error replanning:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
 
 
 
