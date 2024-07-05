@@ -101,8 +101,6 @@ const Write = () => {
           }
         });
       }
-  
-      console.log('Response:', res); // Log the data to be sent to the server
       navigate(`/?cat=${cat}`);
     } catch (err) {
       console.log(err);

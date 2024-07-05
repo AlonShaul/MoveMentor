@@ -12,7 +12,7 @@ const UserProfile = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [planGroups, setPlanGroups] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [activeTab, setActiveTab] = useState('exercises');
+  const [activeTabs, setActiveTabs] = useState({});
   const [hoverRatings, setHoverRatings] = useState({});
   const [userRatings, setUserRatings] = useState({});
 
@@ -51,7 +51,18 @@ const UserProfile = () => {
             }));
             return { ...group, plans };
           }));
+          populatedGroups.sort((a, b) => a.groupName.localeCompare(b.groupName));
           setPlanGroups(populatedGroups);
+
+          // Initialize activeTabs with 'exercises' for all plans
+          const initialTabs = {};
+          populatedGroups.forEach(group => {
+            initialTabs[group._id] = {};
+            group.plans.forEach(plan => {
+              initialTabs[group._id][plan._id] = 'exercises';
+            });
+          });
+          setActiveTabs(initialTabs);
         }
       } catch (err) {
         console.log(err);
@@ -113,7 +124,6 @@ const UserProfile = () => {
       });
       if (response.status === 201) {
         const newPlans = response.data.plansByWeek;
-        const newPlanGroupName = response.data.planGroupName;
         const newPlansPopulated = await Promise.all(
           Object.values(newPlans).map(async plan => {
             const planRes = await axios.get(`${apiUrl}/api/plans/getPlan`, {
@@ -128,12 +138,21 @@ const UserProfile = () => {
         setPlanGroups((prevGroups) => {
           return prevGroups.map(group => {
             if (group._id === groupId) {
-              group.plans = newPlansPopulated;
-              group.groupName = newPlanGroupName;
+              return {
+                ...group,
+                plans: newPlansPopulated
+              };
             }
             return group;
           }).filter(group => group.plans.length > 0);
         });
+        setActiveTabs((prev) => ({
+          ...prev,
+          [groupId]: newPlansPopulated.reduce((acc, plan) => {
+            acc[plan._id] = 'exercises';
+            return acc;
+          }, {})
+        }));
       } else {
         console.error(response.data.error);
       }
@@ -231,6 +250,16 @@ const UserProfile = () => {
     return `${day}/${month}/${year}`;
   };
 
+  const handleTabChange = (groupId, planId, tab) => {
+    setActiveTabs(prev => ({
+      ...prev,
+      [groupId]: {
+        ...prev[groupId],
+        [planId]: tab
+      }
+    }));
+  };
+
   if (!currentUser) {
     return <div>Please log in to see your profile.</div>;
   }
@@ -266,45 +295,45 @@ const UserProfile = () => {
         </div>
         {filteredPlanGroups.length > 0 ? (
           filteredPlanGroups.map((group, groupIndex) => (
-            <div key={groupIndex}>
-              <h3 className="text-lg font-bold mb-2 text-center">{group.groupName} - {group.category}</h3>
-              {group.plans && group.plans.map((plan, planIndex) => (
+            <div key={groupIndex} className="mb-6">
+              <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-lg mb-6 text-center shadow-lg">
+                <p className="text-xl font-semibold text-blue-700"><strong>Group Name:</strong> {group.groupName}</p>
+                <p className="text-xl font-semibold text-blue-700"><strong>Category:</strong> {group.category}</p>
+                <p className="text-xl font-semibold text-blue-700"><strong>Number of Weeks:</strong> {group.plans[0].numberOfWeeks}</p>
+                <p className="text-xl font-semibold text-blue-700"><strong>Sessions per Week:</strong> {group.plans[0].sessionsPerWeek}</p>
+                <p className="text-xl font-semibold text-blue-700"><strong>Date:</strong> {formatDate(group.plans[0].date)}</p>
+                <p className="text-xl font-semibold text-blue-700"><strong>Total Duration:</strong> {group.plans[0].duration} minutes</p>
+                <button
+                  className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-200"
+                  onClick={() => deletePlan(group.plans[0]._id, group._id)}
+                >
+                  Delete Plan
+                </button>
+                <button
+                  className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-200 ml-2"
+                  onClick={() => replan(group.plans[0]._id, group._id, group.category, group.plans[0].duration, group.plans[0].adaptedForThirdAge, group.plans[0].adaptedForChildren, group.plans[0].numberOfWeeks, group.plans[0].sessionsPerWeek)}
+                >
+                  Replan
+                </button>
+              </div>
+              {group.plans.map((plan, planIndex) => (
                 <div key={plan._id} className="plan mb-4">
-                  <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-lg mb-6 text-center shadow-lg">
-                    <p className="text-xl font-semibold text-blue-700"><strong>Category:</strong> {group.category}</p>
-                    <p className="text-xl font-semibold text-blue-700"><strong>Number of Weeks:</strong> {plan.numberOfWeeks}</p>
-                    <p className="text-xl font-semibold text-blue-700"><strong>Sessions per Week:</strong> {plan.sessionsPerWeek}</p>
-                    <p className="text-xl font-semibold text-blue-700"><strong>Date:</strong> {formatDate(plan.date)}</p>
-                    <p className="text-xl font-semibold text-blue-700"><strong>Total Duration:</strong> {plan.duration} minutes</p>
+                  <h1 className="text-lg font-bold mb-2 text-center">Week {planIndex + 1}</h1>
+                  <div className="tabs mb-4 flex justify-center">
                     <button
-                      className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-200"
-                      onClick={() => deletePlan(plan._id, group._id)}
-                    >
-                      Delete Plan
-                    </button>
-                    <button
-                      className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-200 ml-2"
-                      onClick={() => replan(plan._id, group._id, group.category, plan.duration, plan.adaptedForThirdAge, plan.adaptedForChildren, plan.numberOfWeeks, plan.sessionsPerWeek)}
-                    >
-                      Replan
-                    </button>
-                  </div>
-                  <h1 className='text-lg font-bold mb-2 text-center'>Week {planIndex + 1}</h1>
-                  <div className="tabs mb-4">
-                    <button
-                      className={`tab-button ${activeTab === 'exercises' ? 'active' : ''} py-2 px-4`}
-                      onClick={() => setActiveTab('exercises')}
+                      className={`tab-button ${activeTabs[group._id]?.[plan._id] === 'exercises' ? 'active' : ''} py-2 px-4`}
+                      onClick={() => handleTabChange(group._id, plan._id, 'exercises')}
                     >
                       Exercises
                     </button>
                     <button
-                      className={`tab-button ${activeTab === 'feedback' ? 'active' : ''} py-2 px-4`}
-                      onClick={() => setActiveTab('feedback')}
+                      className={`tab-button ${activeTabs[group._id]?.[plan._id] === 'feedback' ? 'active' : ''} py-2 px-4`}
+                      onClick={() => handleTabChange(group._id, plan._id, 'feedback')}
                     >
                       Feedback
                     </button>
                   </div>
-                  {activeTab === 'exercises' ? (
+                  {activeTabs[group._id]?.[plan._id] === 'exercises' ? (
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead>
                         <tr>

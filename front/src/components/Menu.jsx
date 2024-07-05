@@ -37,10 +37,12 @@ const Menu = ({ cat, currentPostId }) => {
 
   const loadMorePosts = () => {
     const nextPage = currentPage + 1;
-    const newVisiblePosts = posts.slice(0, nextPage * postsPerPage);
+    const newVisiblePosts = posts
+      .filter(post => post.cat === cat)
+      .slice(0, nextPage * postsPerPage);
     setVisiblePosts(newVisiblePosts);
     setCurrentPage(nextPage);
-    setHasMore(posts.length > newVisiblePosts.length);
+    setHasMore(posts.filter(post => post.cat === cat).length > newVisiblePosts.length);
   };
 
   if (loading) {

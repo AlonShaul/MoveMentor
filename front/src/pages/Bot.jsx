@@ -96,7 +96,7 @@ const Bot = () => {
           'Content-Type': 'application/json'
         }
       });
-  
+
       if (response.status === 200) {
         const data = response.data;
         console.log('Generated Plan:', data.plan); // Debug log
