@@ -6,13 +6,15 @@ export const useCategories = () => useContext(CategoryContext);
 
 export const CategoryProvider = ({ children }) => {
     const [categories, setCategories] = useState([
-  'כאבי גב',
-  'כאבי צוואר',
-  'כאבי כתף',
-  'כאבי ברכיים',
-  'כאבי ירך',
-  'כאבי קרסול וכף רגל',
-  'כאבי מרפק ושורש כף היד',
+      'בטן',
+      'ברך',
+      'גב',
+      'ירך',
+      'כף יד',
+      'כתפיים',
+      'מרפקים',
+      'צוואר',
+      'קרסול'
       ]);   
 
   return (
