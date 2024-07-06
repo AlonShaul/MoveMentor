@@ -1,10 +1,9 @@
 import Post from '../models/posts.js';
 import Plan from '../models/plan.js';
 import User from '../models/user.js';
-import DeletedPlan from '../models/deletedPlan.js';
 
-const MIN_DURATION = 2; // Minimum duration in minutes
-const MAX_DURATION = 8; // Maximum duration in minutes
+const MIN_DURATION = 2; // Minimum duration in minutes for each exercise
+const MAX_DURATION = 8; // Maximum duration in minutes for each exercise
 const MIN_SETS = 2;
 const MAX_SETS = 4;
 const MIN_REPS = 8;
@@ -52,37 +51,55 @@ export const generatePlan = async (req, res) => {
   try {
     const { category, duration, userId, age, numberOfWeeks, sessionsPerWeek } = req.query;
 
+    // Log the received query parameters
+    console.log('Received query parameters:', { category, duration, userId, age, numberOfWeeks, sessionsPerWeek });
+
     if (!userId || !category || !duration || !numberOfWeeks || !sessionsPerWeek) {
+      console.log('Missing required fields');
       return res.status(400).json({ error: 'All fields are required' });
     }
 
     const user = await User.findById(userId);
     if (!user) {
+      console.log('User not found');
       return res.status(404).json({ error: 'User not found' });
     }
 
     user.planGroups = user.planGroups || [];
 
     if (user.planGroups.length >= 5) {
+      console.log('User has reached the limit of 5 plan groups');
       return res.status(400).json({ error: 'You have reached the limit of 5 plan groups. Please delete a plan group before creating a new one.' });
     }
 
     const requestedDuration = parseInt(duration, 10);
     if (isNaN(requestedDuration)) {
-      return res.status(400).json({ error: 'Invalid duration.' });
+      console.log('Invalid duration:', requestedDuration);
+      return res.status(400).json({ error: 'Duration must be a valid number.' });
     }
 
     let numWeeks = parseInt(numberOfWeeks, 10);
     if (isNaN(numWeeks) || numWeeks < MIN_WEEKS || numWeeks > MAX_WEEKS) {
+      console.log('Invalid number of weeks:', numWeeks);
       return res.status(400).json({ error: `Number of weeks must be between ${MIN_WEEKS} and ${MAX_WEEKS}.` });
     }
 
     let sessionsPerWeekNum = parseInt(sessionsPerWeek, 10);
     if (isNaN(sessionsPerWeekNum) || sessionsPerWeekNum < MIN_SESSIONS || sessionsPerWeekNum > MAX_SESSIONS) {
+      console.log('Invalid sessions per week:', sessionsPerWeekNum);
       return res.status(400).json({ error: `Sessions per week must be between ${MIN_SESSIONS} and ${MAX_SESSIONS}.` });
     }
 
     const exercisesPerSession = EXERCISES_PER_SESSION[sessionsPerWeekNum];
+    const minTotalDuration = exercisesPerSession * MIN_DURATION;
+    const maxTotalDuration = exercisesPerSession * MAX_DURATION;
+
+    if (requestedDuration < minTotalDuration || requestedDuration > maxTotalDuration) {
+      console.log('Requested duration out of range:', requestedDuration);
+      return res.status(400).json({
+        error: `Requested duration must be between ${minTotalDuration} and ${maxTotalDuration} minutes for ${sessionsPerWeekNum} sessions per week.`
+      });
+    }
 
     let query = { cat: category };
 
@@ -92,9 +109,11 @@ export const generatePlan = async (req, res) => {
       query.adaptedForThirdAge = true;
     }
 
+    console.log('Querying posts with:', query);
     const posts = await Post.find(query).sort({ rating: -1 }).lean();
 
     if (!posts || posts.length === 0) {
+      console.log('No exercises found for criteria:', query);
       return res.status(404).json({ error: 'No exercises found for your criteria' });
     }
 
@@ -102,19 +121,8 @@ export const generatePlan = async (req, res) => {
     const filteredPosts = posts.filter(post => !dislikedPosts.includes(post._id));
 
     if (!filteredPosts || filteredPosts.length === 0) {
+      console.log('No exercises found after filtering disliked posts');
       return res.status(404).json({ error: 'No exercises found after filtering disliked posts' });
-    }
-
-    const numVideos = filteredPosts.length;
-    const maxPossibleDuration = numVideos * MAX_DURATION;
-    const minPossibleDuration = numVideos * MIN_DURATION;
-
-    if (requestedDuration > maxPossibleDuration) {
-      return res.status(400).json({ error: `Requested duration exceeds the maximum possible duration of ${maxPossibleDuration} minutes with the available exercises.` });
-    }
-
-    if (requestedDuration < minPossibleDuration) {
-      return res.status(400).json({ error: `Requested duration is less than the minimum possible duration of ${minPossibleDuration} minutes with the available exercises.` });
     }
 
     const plansByWeek = {};
@@ -163,6 +171,7 @@ export const generatePlan = async (req, res) => {
 
     await user.save();
 
+    console.log('Plans generated successfully');
     res.status(201).json({ message: 'Plans generated successfully', plansByWeek, planGroupName });
   } catch (error) {
     console.error('Error generating plans:', error);
@@ -258,6 +267,15 @@ export const replan = async (req, res) => {
     }
 
     const exercisesPerSession = EXERCISES_PER_SESSION[sessionsPerWeekNum];
+    const minTotalDuration = exercisesPerSession * MIN_DURATION;
+    const maxTotalDuration = exercisesPerSession * MAX_DURATION;
+
+    if (requestedDuration < minTotalDuration || requestedDuration > maxTotalDuration) {
+      console.log('Requested duration out of range:', requestedDuration);
+      return res.status(400).json({
+        error: `Requested duration must be between ${minTotalDuration} and ${maxTotalDuration} minutes for ${sessionsPerWeekNum} sessions per week.`
+      });
+    }
 
     let query = { cat: category };
 
@@ -267,6 +285,7 @@ export const replan = async (req, res) => {
       query.adaptedForThirdAge = true;
     }
 
+    console.log('Querying posts with:', query);
     const posts = await Post.find(query).sort({ rating: -1 }).lean();
 
     if (!posts || posts.length === 0) {
@@ -278,18 +297,6 @@ export const replan = async (req, res) => {
 
     if (!filteredPosts || filteredPosts.length === 0) {
       return res.status(404).json({ error: 'No exercises found after filtering disliked posts' });
-    }
-
-    const numVideos = filteredPosts.length;
-    const maxPossibleDuration = numVideos * MAX_DURATION;
-    const minPossibleDuration = numVideos * MIN_DURATION;
-
-    if (requestedDuration > maxPossibleDuration) {
-      return res.status(400).json({ error: `Requested duration exceeds the maximum possible duration of ${maxPossibleDuration} minutes with the available exercises.` });
-    }
-
-    if (requestedDuration < minPossibleDuration) {
-      return res.status(400).json({ error: `Requested duration is less than the minimum possible duration of ${minPossibleDuration} minutes with the available exercises.` });
     }
 
     const newPlans = [];
@@ -343,7 +350,6 @@ export const replan = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
 
 
 export const getPlanById = async (req, res) => {
