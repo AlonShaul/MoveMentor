@@ -150,31 +150,6 @@ const Write = () => {
             ))}
           </div>
         </div>
-        <div className="mb-10 p-4 bg-blue-50 rounded-lg shadow-md">
-          <h1 className="text-lg font-bold mb-2 text-right text-blue-800 border-b-2 pb-2">משך</h1>
-          <div className="flex justify-center space-x-4">
-            <div className="flex-1">
-              <label className="block text-center">דקות</label>
-              <input
-                type="number"
-                value={minutes}
-                placeholder="דקות"
-                onChange={(e) => setMinutes(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg mb-2 shadow-sm text-center"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-center">שניות</label>
-              <input
-                type="number"
-                value={seconds}
-                placeholder="שניות"
-                onChange={(e) => setSeconds(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg mb-2 shadow-sm text-center"
-              />
-            </div>
-          </div>
-        </div>
         <div className="mb-6 p-4 bg-blue-50 rounded-lg shadow-md">
           <h1 className="text-lg font-bold mb-2 text-right text-blue-800 border-b-2 pb-2">התאמות</h1>
           <div className="flex items-center justify-end mb-2">

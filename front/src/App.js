@@ -18,6 +18,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import Bot from "./pages/Bot"; // Import the Bot component
 import "./style.scss";
 import backgroundImage from "./img/wp7935249.jpg";
+import Dashboard from "./pages/Dashboard";
 
 const Layout = () => {
   return (
@@ -58,6 +59,14 @@ const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Write />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard",
+        element: (
+          <PrivateRoute>
+            <Dashboard />
           </PrivateRoute>
         ),
       },

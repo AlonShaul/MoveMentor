@@ -64,6 +64,13 @@ const Navbar = () => {
               <span className="write ml-4">כתוב פוסט</span>
             </Link>
           )}
+          <div className="hidden md:flex space-x-4 items-center">
+          {currentUser && currentUser.role === 'admin' && (
+            <Link className="link" to="/dashboard">
+              <h6 className="capitalize">דשבורד</h6>
+            </Link>
+          )}
+          </div>
           <Link className="link" to="/" key="about">
             <h6 className="capitalize">אודות</h6>
           </Link>
