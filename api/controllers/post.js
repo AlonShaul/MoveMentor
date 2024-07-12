@@ -1,4 +1,123 @@
 import Post from '../models/posts.js';
+import User from '../models/user.js'; // Ensure User model is imported
+
+// api/controllers/post.js
+export const getCategoryRatings = async (req, res) => {
+  try {
+    const posts = await Post.find();
+    const categoryRatings = {};
+
+    posts.forEach(post => {
+      if (post.ratings.length > 0) {
+        const validRatings = post.ratings.filter(r => r.value !== 0);
+        if (validRatings.length > 0) {
+          const sumRatings = validRatings.reduce((sum, r) => sum + r.value, 0);
+          if (categoryRatings[post.cat]) {
+            categoryRatings[post.cat].sum += sumRatings;
+            categoryRatings[post.cat].count += validRatings.length;
+          } else {
+            categoryRatings[post.cat] = { sum: sumRatings, count: validRatings.length };
+          }
+        }
+      }
+    });
+
+
+    const categoryAverages = Object.keys(categoryRatings).reduce((acc, cat) => {
+      acc[cat] = categoryRatings[cat].sum / categoryRatings[cat].count;
+      return acc;
+    }, {});
+
+
+    res.status(200).json(categoryAverages);
+  } catch (err) {
+    console.error("Error calculating category ratings:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
+export const getCategoryLikesDislikes = async (req, res) => {
+  try {
+    const posts = await Post.find();
+
+    const categoryLikesDislikes = {};
+
+    posts.forEach(post => {
+      const likeCount = post.likes.length;
+      const dislikeCount = post.dislikes.length;
+
+      if (likeCount > 0 || dislikeCount > 0) {
+        if (categoryLikesDislikes[post.cat]) {
+          categoryLikesDislikes[post.cat].likes += likeCount;
+          categoryLikesDislikes[post.cat].dislikes += dislikeCount;
+        } else {
+          categoryLikesDislikes[post.cat] = {
+            likes: likeCount,
+            dislikes: dislikeCount,
+          };
+        }
+      }
+    });
+    res.status(200).json(categoryLikesDislikes);
+  } catch (err) {
+    console.error("Error calculating category likes and dislikes:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getUserRatingsCount = async (req, res) => {
+  try {
+    console.log("getUserRatingsCount called");
+    const posts = await Post.find();
+
+    const userRatingsCount = {};
+
+    posts.forEach(post => {
+      post.ratings.forEach(rating => {
+        if (userRatingsCount[rating.userId]) {
+          userRatingsCount[rating.userId] += 1;
+        } else {
+          userRatingsCount[rating.userId] = 1;
+        }
+      });
+    });
+
+    const userIds = Object.keys(userRatingsCount);
+    const users = await User.find({ _id: { $in: userIds } }).select('username');
+
+    const userRatings = users.map(user => ({
+      username: user.username,
+      count: userRatingsCount[user._id.toString()] // Convert ObjectId to string for consistency
+    }));
+
+    res.status(200).json(userRatings);
+  } catch (err) {
+    console.error("Error calculating user ratings count:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getPostRatingsCount = async (req, res) => {
+  try {
+    const posts = await Post.find();
+    const postRatingsCount = posts
+      .filter(post => post.ratings.length > 0) // Filter out posts with zero ratings
+      .map(post => ({
+        title: post.title,
+        ratingCount: post.ratings.length
+      }));
+
+    // Sort by ratingCount to find the most rated posts
+    postRatingsCount.sort((a, b) => b.ratingCount - a.ratingCount);
+
+    res.status(200).json(postRatingsCount);
+  } catch (err) {
+    console.error("Error calculating post ratings count:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
 
 export const generateExercisePlan = async (req, res) => {
   try {
