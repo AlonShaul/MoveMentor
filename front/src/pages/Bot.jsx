@@ -244,7 +244,7 @@ const Bot = () => {
       case 'האם תרצה/י שאצור עבורך תוכנית אימונים מותאמת לפי השיחה שלנו? :)':
         if (/^[a-zA-Zא-ת\s]+$/.test(userResponse) && validResponses.some(response => userResponse.includes(response))) {
           isResponseValid = true;
-          if (['כן', 'אשמח', 'יש צורך', 'ברור', 'חיובי'].includes(userResponse)) {
+          if (['כן', 'אשמח', 'יש צורך', 'ברור', 'חיובי', 'אכן'].includes(userResponse)) {
             if (!planCreated) {
               await generatePlan();
               setPlanCreated(true);
@@ -253,7 +253,7 @@ const Bot = () => {
               newMessages.push({ from: 'bot', text: 'תוכנית שיקום מותאמת אישית כבר נוצרה עבורך, תוכל לצפות בה בדף המשתמש שלך :)' });
             }
           } else if (['לא', 'אשמח שלא', 'אין צורך', 'ברור', 'שלילי'].includes(userResponse)) {
-            newMessages.push({ from: 'bot', text: 'שיהיה לך יום טוב, אשמח לעמוד לשירותך במידה ותרצה/י ליצור תוכנית שיקום אישית :)' });
+            newMessages.push({ from: 'bot', text: 'שיהיה לך יום טוב, אשמח לעמוד לשירותך במידה ותרצה ליצור תוכנית שיקום אישית :)' });
           }
         } else {
           newMessages.push({ from: 'bot', text: 'לא הצלחתי להבין, האם תרצה/י שאצור עבורך תוכנית שיקום מותאמת אישית?' });
