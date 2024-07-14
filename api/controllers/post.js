@@ -37,7 +37,7 @@ export const getCategoryRatings = async (req, res) => {
 };
 
 
-
+// Add this new function to fetch top 5 exercises by likes
 export const getCategoryLikesDislikes = async (req, res) => {
   try {
     const posts = await Post.find();
@@ -66,6 +66,28 @@ export const getCategoryLikesDislikes = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+// Add this new function to fetch top 5 exercises by dislikes
+export const getTopExercisesByDislikes = async (req, res) => {
+  try {
+    const posts = await Post.find();
+    const topDislikedExercises = posts
+      .map(post => ({
+        title: post.title,
+        dislikes: post.dislikes.length
+      }))
+      .sort((a, b) => b.dislikes - a.dislikes)
+      .slice(0, 5);
+
+    console.log("Top Exercises by Dislikes:", topDislikedExercises);
+    res.status(200).json(topDislikedExercises);
+  } catch (err) {
+    console.error("Error fetching top exercises by dislikes:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 export const getUserRatingsCount = async (req, res) => {
   try {
@@ -118,6 +140,50 @@ export const getPostRatingsCount = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+export const getAllExerciseRatings = async (req, res) => {
+  try {
+    const posts = await Post.find();
+    const exerciseRatings = posts
+      .filter(post => post.ratings.length > 0)
+      .map(post => ({
+        title: post.title,
+        category: post.cat,
+        averageRating: post.ratings.length ? (post.ratings.reduce((sum, r) => sum + r.value, 0) / post.ratings.length).toFixed(2) : 0
+      }));
+
+    console.log("Exercise Ratings:", exerciseRatings);
+    res.status(200).json(exerciseRatings);
+  } catch (err) {
+    console.error("Error fetching exercise ratings:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
+export const getTopExercisesByLikes = async (req, res) => {
+  try {
+    const posts = await Post.find();
+    const topExercises = posts
+      .map(post => ({
+        title: post.title,
+        likes: post.likes.length
+      }))
+      .sort((a, b) => b.likes - a.likes)
+      .slice(0, 5);
+
+    console.log("Top Exercises by Likes:", topExercises);
+    res.status(200).json(topExercises);
+  } catch (err) {
+    console.error("Error fetching top exercises by likes:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
 
 export const generateExercisePlan = async (req, res) => {
   try {

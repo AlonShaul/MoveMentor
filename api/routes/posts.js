@@ -1,4 +1,3 @@
-// api/routes/posts.js
 import express from 'express';
 import {
   getPosts,
@@ -12,17 +11,23 @@ import {
   dislikePost,
   getCategoryRatings,
   getCategoryLikesDislikes,
+  getTopExercisesByDislikes,
   getUserRatingsCount,
-  getPostRatingsCount // Import the new function
+  getPostRatingsCount,
+  getAllExerciseRatings, // Import the new function
+  getTopExercisesByLikes // Import the new function
 } from '../controllers/post.js';
 import { authMiddleware, adminMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/ratings/count', getPostRatingsCount); // New route for getting post ratings count
+router.get('/ratings/count', getPostRatingsCount);
 router.get('/category/ratings', getCategoryRatings);
 router.get('/category/likesdislikes', getCategoryLikesDislikes);
 router.get('/user/ratingscount', getUserRatingsCount);
+router.get('/exercises/ratings', getAllExerciseRatings); // New route for fetching all exercise ratings
+router.get('/top/likes', getTopExercisesByLikes); // New route for fetching top exercises by likes
+router.get('/top/dislikes', getTopExercisesByDislikes);
 router.get('/', getPosts);
 router.get('/:id', getPost);
 router.post('/', authMiddleware, addPost);
