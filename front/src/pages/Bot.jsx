@@ -371,7 +371,7 @@ const Bot = () => {
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            className="mt-2 p-2 border rounded w-full rtl-input"
+            className="mt-2 p-2 border rounded w-full rtl-input text-black"
             placeholder="רשום את תשובתך..."
           />
           <button onClick={handleSend} className="mt-2 bg-blue-500 text-white p-2 rounded w-full">

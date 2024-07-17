@@ -154,8 +154,6 @@ button {
   }
 }
 
-
-
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
@@ -183,17 +181,146 @@ button {
   justify-content: flex-end;
 }
 
+/* Dark mode styles */
+:root {
+  --color-background-light: #f7fafc; /* Light background color */
+  --color-background-dark: #1a202c; /* Dark background color */
+  --color-text-light: #000000; /* Light text color */
+  --color-text-dark: #ffffff; /* Dark text color */
+}
+
+html.dark {
+  --color-background: var(--color-background-dark);
+  --color-text: var(--color-text-dark);
+}
+
+html.light {
+  --color-background: var(--color-background-light);
+  --color-text: var(--color-text-light);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+.navbar, footer {
+  background-color: transparent;
+}
+
+.dark .modal {
+  background: var(--color-background-dark);
+  color: var(--color-text-dark);
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+}
+
+.dark .overlay {
+  background-color: rgba(0, 0, 0, 0.85);
+}
+
+.dark .chat-window {
+  border-color: #444;
+}
+
+.dark .user-message {
+  color: #a0aec0;
+}
+
+.dark .bot-message {
+  color: #f56565;
+}
+
+.dark .chatbot-widget {
+  background: #2d3748;
+  border-color: #4a5568;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+.dark .chatbot-header {
+  background: #2b6cb0;
+}
+
+.dark .chatbot-body {
+  border-color: #4a5568;
+}
+
+.dark .chatbot-body button {
+  background: #2b6cb0;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #718096;
+}
+
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Start on the left */
+  width: 50px;
+  height: 25px;
+  background-color: #ddd;
+  border-radius: 25px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  padding: 3px;
+}
+
+.toggle.dark {
+  justify-content: flex-end; /* Move to the right in dark mode */
+  background-color: #555;
+}
+
+.toggle i {
+  color: #f1c40f; /* Default color */
+  transition: transform 0.3s, color 0.3s;
+}
+
+.toggle .fa-sun {
+  color: #f39c12;
+}
+
+.toggle .fa-moon {
+  color: #f1c40f;
+}
 
 
 
+.carousel-container {
+  position: relative;
+  width: 100%;
+  max-width: 300;
+  margin: auto;
+}
 
+.carousel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
 
+.carousel-item {
+  transition: transform 0.1s ease-in-out, opacity 0.1s ease-in-out, filter 0.1s ease-in-out;
+  transform-origin: center;
+}
 
+.carousel-item.inactive {
+  transform: scale(0.9);
+  opacity: 0.1;
+}
 
+.carousel-item.active {
+  transform: scale(1.05);
+  opacity: 1;
+}
 
-
-
-
-
-
-
+.post {
+  transition: transform 0.1s ease-in-out, z-index 0.1s ease-in-out;
+  border-radius: 8px; /* Rounded edges for all exercises */
+}

@@ -22,7 +22,7 @@ import Dashboard from "./pages/Dashboard";
 
 const Layout = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-cover bg-center" style={{ backgroundImage: `url(${backgroundImage})` }}>
+    <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
       <Navbar />
       <div className="flex-grow">
         <Outlet />

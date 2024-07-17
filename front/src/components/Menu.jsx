@@ -51,11 +51,11 @@ const Menu = ({ cat, currentPostId }) => {
 
   return (
     posts.length > 0 && (
-      <div className="menu bg-gray-100 p-4 rounded-lg shadow-md">
+      <div className="menu bg-gray-100 dark:bg-gray-900 p-4 rounded-lg shadow-md text-gray-900 dark:text-white">
         <h1 className="text-2xl font-bold mb-4 text-center">Other Posts You May Like 😉</h1>
         {visiblePosts.map((post) => (
           <div
-            className="post bg-white p-4 rounded-lg shadow-md mb-4 hover:shadow-lg transition-shadow duration-300"
+            className="post bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4 hover:shadow-lg transition-shadow duration-300"
             key={post._id}
           >
             <div className="w-full h-40 mb-4">
@@ -66,7 +66,7 @@ const Menu = ({ cat, currentPostId }) => {
             </div>
             <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
             <Link to={`/post/${post._id}`}>
-              <button className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200">
+              <button className="bg-blue-500 dark:bg-blue-700 text-white py-2 px-4 rounded-md hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors duration-200">
                 Read More
               </button>
             </Link>
@@ -76,7 +76,7 @@ const Menu = ({ cat, currentPostId }) => {
           <div className="flex justify-center mt-4">
             <button
               onClick={loadMorePosts}
-              className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200"
+              className="bg-blue-500 dark:bg-blue-700 text-white py-2 px-4 rounded-md hover:bg-blue-600 dark:hover:bg-blue-800 transition duration-200"
             >
               Load More
             </button>
