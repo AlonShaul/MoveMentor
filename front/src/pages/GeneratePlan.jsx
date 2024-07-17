@@ -1,4 +1,3 @@
-// front/src/pages/GeneratePlan.jsx
 import React, { useState } from 'react';
 import { useApi } from '../context/ApiContext';
 import { useCategories } from '../context/CategoryContext';
@@ -121,15 +120,15 @@ const GeneratePlan = () => {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen mt-20">
+    <div className="relative flex flex-col min-h-screen mt-40 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       <div className="flex-grow container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4 text-center text-white">Generate Exercise Plan</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">Generate Exercise Plan</h1>
         <div className="mb-4">
-          <label className="block text-white text-sm font-bold mb-2">Category</label>
+          <label className="block text-sm font-bold mb-2">Category</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="border border-gray-300 p-2 rounded w-full"
+            className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             <option value="">Select a category</option>
             {categories.map((cat, index) => (
@@ -140,92 +139,92 @@ const GeneratePlan = () => {
           </select>
         </div>
         <div className="mb-4">
-          <label className="block text-white text-sm font-bold mb-2">Duration (minutes)</label>
+          <label className="block text-sm font-bold mb-2">Duration (minutes)</label>
           <input
             type="number"
             placeholder="Duration"
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
-            className="border border-gray-300 p-2 rounded w-full"
+            className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-white text-sm font-bold mb-2">Age</label>
+          <label className="block text-sm font-bold mb-2">Age</label>
           <input
             type="number"
             placeholder="Age"
             value={age}
             onChange={(e) => setAge(e.target.value)}
-            className="border border-gray-300 p-2 rounded w-full"
+            className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-white text-sm font-bold mb-2">Number of Training Sessions per Week</label>
+          <label className="block text-sm font-bold mb-2">Number of Training Sessions per Week</label>
           <input
             type="number"
             placeholder="Sessions per Week"
             value={sessionsPerWeek}
             onChange={(e) => setSessionsPerWeek(e.target.value)}
-            className="border border-gray-300 p-2 rounded w-full"
+            className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-white text-sm font-bold mb-2">Number of Weeks</label>
+          <label className="block text-sm font-bold mb-2">Number of Weeks</label>
           <input
             type="number"
             placeholder="Number of Weeks"
             value={numberOfWeeks}
             onChange={(e) => setNumberOfWeeks(e.target.value)}
-            className="border border-gray-300 p-2 rounded w-full"
+            className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
         <div className="mb-4">
           <button
             onClick={generatePlan}
-            className="bg-blue-500 text-white p-2 rounded w-full hover:bg-blue-600 font-bold"
+            className="bg-blue-500 dark:bg-blue-700 text-white p-2 rounded w-full hover:bg-blue-600 dark:hover:bg-blue-800 font-bold"
           >
             Generate Plan
           </button>
         </div>
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-red-500 dark:text-red-400">{error}</p>}
         {plan && (
           <div>
             <h2 className="text-xl font-bold mb-4 text-center">Generated Plan</h2>
-            <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-lg mb-6 text-center shadow-lg">
-              <p className="text-xl font-semibold text-blue-700"><strong>Category:</strong> {plan.category}</p>
-              <p className="text-xl font-semibold text-blue-700"><strong>Number of Weeks:</strong> {plan.numberOfWeeks}</p>
-              <p className="text-xl font-semibold text-blue-700"><strong>Sessions per Week:</strong> {plan.sessionsPerWeek}</p>
+            <div className="bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 p-6 rounded-lg mb-6 text-center shadow-lg">
+              <p className="text-xl font-semibold text-blue-700 dark:text-blue-300"><strong>Category:</strong> {plan.category}</p>
+              <p className="text-xl font-semibold text-blue-700 dark:text-blue-300"><strong>Number of Weeks:</strong> {plan.numberOfWeeks}</p>
+              <p className="text-xl font-semibold text-blue-700 dark:text-blue-300"><strong>Sessions per Week:</strong> {plan.sessionsPerWeek}</p>
             </div>
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead>
                 <tr>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Video</th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Like / Dislike</th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Third Age</th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adapted for Children</th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Duration</th>
+                  <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Title</th>
+                  <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                  <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Video</th>
+                  <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rating</th>
+                  <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Like / Dislike</th>
+                  <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Adapted for Third Age</th>
+                  <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Adapted for Children</th>
+                  <th className="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Duration</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                 {plan.exercises.map((exercise, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exercise.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{exercise.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {exercise.videoUrl && (
-                        <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
+                        <a href={exercise.videoUrl} className="text-blue-500 dark:text-blue-300 hover:underline" target="_blank" rel="noopener noreferrer">
                           Video
                         </a>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{renderStars(exercise.rating, index)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{renderStars(exercise.rating, index)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       <button
                         onClick={() => handleLike(index)}
-                        className={`text-2xl transform transition-transform ${exercise.liked ? "text-blue-500 scale-125" : "text-gray-300"}`}
+                        className={`text-2xl transform transition-transform ${exercise.liked ? "text-blue-500 dark:text-blue-300 scale-125" : "text-gray-300 dark:text-gray-500"}`}
                         onMouseEnter={(e) => e.target.classList.add("scale-110")}
                         onMouseLeave={(e) => e.target.classList.remove("scale-110")}
                       >
@@ -233,16 +232,16 @@ const GeneratePlan = () => {
                       </button>
                       <button
                         onClick={() => handleDislike(index)}
-                        className={`text-2xl transform transition-transform ${exercise.disliked ? "text-red-500 scale-125" : "text-gray-300"}`}
+                        className={`text-2xl transform transition-transform ${exercise.disliked ? "text-red-500 dark:text-red-300 scale-125" : "text-gray-300 dark:text-gray-500"}`}
                         onMouseEnter={(e) => e.target.classList.add("scale-110")}
                         onMouseLeave={(e) => e.target.classList.remove("scale-110")}
                       >
                         &#128078;
                       </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exercise.duration} minutes</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.duration} minutes</td>
                   </tr>
                 ))}
               </tbody>

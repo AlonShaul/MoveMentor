@@ -46,8 +46,8 @@ const Dashboard = () => {
     fetchData();
   }, [apiUrl]);
 
-  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (loading) return <div className="flex justify-center items-center h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">Loading...</div>;
+  if (error) return <div className="text-red-500 dark:text-red-400">Error: {error}</div>;
 
   const colors = [
     'rgba(255, 99, 132, 0.2)',
@@ -157,7 +157,7 @@ const Dashboard = () => {
         borderColor: borderColor.slice(0, topExercises.length),
         borderWidth: 1,
         datalabels: {
-          color: '#black',
+          color: '#000000',
           formatter: (value, context) => {
             return value; // Display the number of likes
           },
@@ -176,7 +176,7 @@ const Dashboard = () => {
         borderColor: borderColor.slice(0, topDislikedExercises.length),
         borderWidth: 1,
         datalabels: {
-          color: '#black',
+          color: '#000000',
           formatter: (value, context) => {
             return value; // Display the number of dislikes
           },
@@ -212,35 +212,51 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 mt-20">
-      <h1 className="flex justify-center text-3xl font-bold mb-4 text-white">Dashboard</h1>
-      <h2 className="flex justify-center text-2xl font-bold mb-4 text-white">Category Ratings</h2>
-      <div className="bg-white shadow rounded-lg p-4 mb-8" style={{ height: '400px' }}>
-        <Bar data={ratingsData} options={options} />
-      </div>
-      <h2 className="flex justify-center text-2xl font-bold mb-4 text-white">Likes and Dislikes by Category</h2>
-      <div className="bg-white shadow rounded-lg p-4 mb-8" style={{ height: '400px' }}>
-        <Bar data={likesDislikesData} options={options} />
-      </div>
-      <h2 className="flex justify-center text-2xl font-bold mb-4 text-white">Most Active Users</h2>
-      <div className="bg-white shadow rounded-lg p-4 mb-8" style={{ height: '400px' }}>
-        <Bar data={userRatingsData} options={options} />
-      </div>
-      <h2 className="flex justify-center text-2xl font-bold mb-4 text-white">Most Rated Posts</h2>
-      <div className="bg-white shadow rounded-lg p-4 mb-8" style={{ height: '400px' }}>
-        <Bar data={postRatingsData} options={options} />
-      </div>
-      <h2 className="flex justify-center text-2xl font-bold mb-4 text-white">Exercise Ratings</h2>
-      <div className="bg-white shadow rounded-lg p-4 mb-8" style={{ height: '400px' }}>
-        <Bar data={exerciseRatingsData} options={options} />
-      </div>
-      <h2 className="flex justify-center text-2xl font-bold mb-4 text-white">Top 5 Exercises by Likes</h2>
-      <div className="bg-white shadow rounded-lg p-4 mb-8" style={{ height: '400px' }}>
-        <Pie data={topExercisesData} options={options} plugins={[ChartDataLabels]} />
-      </div>
-      <h2 className="flex justify-center text-2xl font-bold mb-4 text-white">Top 5 Exercises by Dislikes</h2>
-      <div className="bg-white shadow rounded-lg p-4 mb-8" style={{ height: '400px' }}>
-        <Pie data={topDislikedExercisesData} options={options} plugins={[ChartDataLabels]} />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+      <div className="container mx-auto p-4 mt-20">
+        <h1 className="flex justify-center text-3xl font-bold mb-4">Dashboard</h1>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">Category Ratings</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+          <div className="h-96">
+            <Bar data={ratingsData} options={options} />
+          </div>
+        </div>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">Likes and Dislikes by Category</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+          <div className="h-96">
+            <Bar data={likesDislikesData} options={options} />
+          </div>
+        </div>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">Most Active Users</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+          <div className="h-96">
+            <Bar data={userRatingsData} options={options} />
+          </div>
+        </div>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">Most Rated Posts</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+          <div className="h-96">
+            <Bar data={postRatingsData} options={options} />
+          </div>
+        </div>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">Exercise Ratings</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+          <div className="h-96">
+            <Bar data={exerciseRatingsData} options={options} />
+          </div>
+        </div>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">Top 5 Exercises by Likes</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+          <div className="h-96">
+            <Pie data={topExercisesData} options={options} plugins={[ChartDataLabels]} />
+          </div>
+        </div>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">Top 5 Exercises by Dislikes</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+          <div className="h-96">
+            <Pie data={topDislikedExercisesData} options={options} plugins={[ChartDataLabels]} />
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useCategories } from "../context/CategoryContext";
 import { AuthContext } from "../context/authContext";
 import { useApi } from "../context/ApiContext";
-import backgroundImage from "../img/wp7935249.jpg";
 
 const Write = () => {
   const location = useLocation();
@@ -70,9 +69,6 @@ const Write = () => {
       seconds: parseInt(seconds, 10)
     };
 
-    // Debugging logs to verify data
-
-  
     try {
       const postData = {
         title,
@@ -108,20 +104,18 @@ const Write = () => {
   };
   
   return (
-    <div
-      className="flex flex-col items-center p-4 mt-20 min-h-screen bg-cover bg-center" 
-      style={{ backgroundImage: `url(${backgroundImage})` }}>
-      <div className="w-full max-w-4xl bg-sky-200 p-6 rounded-lg shadow-lg">
-        <div className="p-4 bg-blue-50 rounded-lg shadow-md mb-4">
+    <div className="flex flex-col items-center p-4 mt-20 min-h-screen bg-gray-100 dark:bg-gray-900">
+      <div className="w-full max-w-4xl bg-sky-200 dark:bg-gray-800 dark:text-white p-6 rounded-lg shadow-lg">
+        <div className="p-4 bg-blue-50 dark:bg-gray-700 rounded-lg shadow-md mb-4">
           <input
             type="text"
             value={title}
             placeholder="כותרת"
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm text-right bg-blue-50"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-right bg-blue-50 dark:bg-gray-600"
           />
         </div>
-        <div className="inputText p-4 bg-blue-50 rounded-lg shadow-md mb-10">
+        <div className="inputText p-4 bg-blue-50 dark:bg-gray-700 rounded-lg shadow-md mb-10">
           <ReactQuill
             className="editor"
             theme="snow"
@@ -131,12 +125,16 @@ const Write = () => {
             }}
           />
         </div>
-        <div className="mb-10 p-4 bg-blue-50 rounded-lg shadow-md">
-          <h1 className="text-lg font-bold mb-2 text-right text-blue-800 border-b-2 pb-2">קטגוריה</h1>
+        <div className="mb-10 p-4 bg-blue-50 dark:bg-gray-700 rounded-lg shadow-md">
+          <h1 className="text-lg font-bold mb-2 text-right text-blue-800 dark:text-blue-300 border-b-2 pb-2">
+            קטגוריה
+          </h1>
           <div className="grid grid-cols-1 gap-2">
             {categories.map((category) => (
               <div className="flex items-center justify-between" key={category}>
-                <label htmlFor={category} className="mx-0 flex-1 text-right">{category.charAt(0).toUpperCase() + category.slice(1)}</label>
+                <label htmlFor={category} className="mx-0 flex-1 text-right">
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </label>
                 <input
                   type="radio"
                   checked={cat === category}
@@ -150,8 +148,8 @@ const Write = () => {
             ))}
           </div>
         </div>
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg shadow-md">
-          <h1 className="text-lg font-bold mb-2 text-right text-blue-800 border-b-2 pb-2">התאמות</h1>
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-gray-700 rounded-lg shadow-md">
+          <h1 className="text-lg font-bold mb-2 text-right text-blue-800 dark:text-blue-300 border-b-2 pb-2">התאמות</h1>
           <div className="flex items-center justify-end mb-2">
             <label className="mr-2">מותאם לגיל השלישי</label>
             <input
@@ -171,8 +169,8 @@ const Write = () => {
             />
           </div>
         </div>
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg shadow-md">
-          <h1 className="text-lg font-bold mb-2 text-right text-blue-800 border-b-2 pb-2">וידאו</h1>
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-gray-700 rounded-lg shadow-md">
+          <h1 className="text-lg font-bold mb-2 text-right text-blue-800 dark:text-blue-300 border-b-2 pb-2">וידאו</h1>
           <button
             onClick={() => uploadWithCloudinary(setVideoUrl)}
             disabled={isUploading}

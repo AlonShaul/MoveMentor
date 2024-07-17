@@ -1,5 +1,4 @@
-// src/components/Navbar.jsx
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "../img/logo.png";
 import { AuthContext } from "../context/authContext";
@@ -12,6 +11,13 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isInjuryOpen, setIsInjuryOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const theme = localStorage.getItem('theme') || 'light';
+    setDarkMode(theme === 'dark');
+    document.documentElement.classList.add(theme);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -37,13 +43,21 @@ const Navbar = () => {
     setIsInjuryOpen(false);
   };
 
+  const toggleDarkMode = () => {
+    const newMode = darkMode ? 'light' : 'dark';
+    setDarkMode(!darkMode);
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(newMode);
+    localStorage.setItem('theme', newMode);
+  };
+
   return (
-    <div className="navbar fixed w-full z-10 top-4 h-20 text-white bg-transparent font-bold">
-      <div className="container mx-auto px-2 flex justify-between items-center h-full"> {/* Changed px-4 to px-2 to move the logo left */}
+    <div className="navbar fixed w-full z-10 top-4 h-20 text-gray-900 dark:text-white bg-transparent font-bold">
+      <div className="container mx-auto px-2 flex justify-between items-center h-full">
         <div className="flex items-center space-x-8">
           <div className="logo">
             <Link to="/about">
-              <img src={Logo} alt="Logo" className="h-20" /> {/* Increased the logo size */}
+              <img src={Logo} alt="Logo" className="h-20" />
             </Link>
           </div>
           {currentUser && (
@@ -55,6 +69,9 @@ const Navbar = () => {
                 </span>
               </Link>
               <span onClick={handleLogout} className="cursor-pointer ml-4">Logout</span>
+              <div onClick={toggleDarkMode} className={`ml-4 relative toggle ${darkMode ? 'dark' : ''}`}>
+                <i className={`fas ${darkMode ? 'fa-moon' : 'fa-sun'}`}></i>
+              </div>
             </>
           )}
         </div>
@@ -64,13 +81,11 @@ const Navbar = () => {
               <span className="write ml-4">כתוב פוסט</span>
             </Link>
           )}
-          <div className="hidden md:flex space-x-4 items-center">
           {currentUser && currentUser.role === 'admin' && (
             <Link className="link" to="/dashboard">
               <h6 className="capitalize">דשבורד</h6>
             </Link>
           )}
-          </div>
           <Link className="link" to="/" key="about">
             <h6 className="capitalize">אודות</h6>
           </Link>
@@ -83,10 +98,10 @@ const Navbar = () => {
               <i className={`fas fa-caret-${isInjuryOpen ? 'up' : 'down'} ml-2`}></i>
             </button>
             {isInjuryOpen && (
-              <div className="absolute top-full left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg text-right">
+              <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md shadow-lg text-right">
                 {categories.map((item) => (
                   <Link
-                    className="block px-4 py-2 hover:bg-gray-200"
+                    className="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-600"
                     to={`/?cat=${item}`}
                     key={item}
                     onClick={handleCategoryClick}
@@ -102,7 +117,7 @@ const Navbar = () => {
           </Link>
         </div>
         <div className="md:hidden flex items-center space-x-4">
-          <button onClick={toggleSidebar} className="text-gray-800 focus:outline-none">
+          <button onClick={toggleSidebar} className="text-gray-800 dark:text-white focus:outline-none">
             <i className="fas fa-bars"></i>
           </button>
         </div>
@@ -110,22 +125,24 @@ const Navbar = () => {
       {isOpen && (
         <div className="fixed inset-0 flex z-0">
           <div className="bg-black bg-opacity-50 flex-grow" onClick={closeSidebar}></div>
-          <div className="bg-white w-64 h-full shadow-md p-4 overflow-y-auto">
-            <button onClick={toggleSidebar} className="text-gray-800 focus:outline-none mb-4">
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white w-64 h-full shadow-md p-4 overflow-y-auto">
+            <button onClick={toggleSidebar} className="text-gray-800 dark:text-white focus:outline-none mb-4">
               <i className="fas fa-times"></i>
             </button>
             <div className="flex flex-col space-y-4">
-              <Link className="link" to="/" onClick={toggleSidebar}>דף הבית</Link>
+              <Link className="link" to="/" onClick={toggleSidebar}>
+                דף הבית
+              </Link>
               <div className="relative">
                 <button className="link capitalize" key="injury" onClick={toggleInjury}>
                   איזורי פציעה
                   <i className={`fas fa-caret-${isInjuryOpen ? 'up' : 'down'} ml-2`}></i>
                 </button>
                 {isInjuryOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg">
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md shadow-lg">
                     {categories.map((item) => (
                       <Link
-                        className="block px-4 py-2 hover:bg-gray-200"
+                        className="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-600"
                         to={`/?cat=${item}`}
                         key={item}
                         onClick={handleCategoryClick}
@@ -136,12 +153,21 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
-              <Link className="link" to="/generate-plan" onClick={toggleSidebar}>בניית תוכנית</Link>
-              <Link className="link" to="/about" onClick={toggleSidebar}>אודות</Link>
-              {!currentUser && (
-                <Link className="link" to="/login" onClick={toggleSidebar}>
-                  Login
-                </Link>
+              <Link className="link" to="/generate-plan" onClick={toggleSidebar}>
+                בניית תוכנית
+              </Link>
+              <Link className="link" to="/about" onClick={toggleSidebar}>
+                אודות
+              </Link>
+              {currentUser && currentUser.role === 'admin' && (
+                <>
+                  <Link className="link" to="/dashboard" onClick={toggleSidebar}>
+                    דשבורד
+                  </Link>
+                  <Link className="link" to="/write" onClick={toggleSidebar}>
+                    כתוב פוסט
+                  </Link>
+                </>
               )}
             </div>
           </div>
