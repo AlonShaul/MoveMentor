@@ -120,17 +120,17 @@ const GeneratePlan = () => {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen mt-40 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div dir='rtl' className="relative flex flex-col min-h-screen mt-40 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       <div className="flex-grow container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4 text-center">Generate Exercise Plan</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">יצירת תוכנית שיקום אישית</h1>
         <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">Category</label>
+          <label className="block text-sm font-bold mb-2">קטגוריה</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
-            <option value="">Select a category</option>
+            <option value="">בחר קטגוריית פציעה</option>
             {categories.map((cat, index) => (
               <option key={index} value={cat}>
                 {cat}
@@ -139,40 +139,40 @@ const GeneratePlan = () => {
           </select>
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">Duration (minutes)</label>
+          <label className="block text-sm font-bold mb-2">זמן אימון (דקות)</label>
           <input
             type="number"
-            placeholder="Duration"
+            placeholder="מה משך האימון שתרצה?"
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
             className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">Age</label>
+          <label className="block text-sm font-bold mb-2">גיל</label>
           <input
             type="number"
-            placeholder="Age"
+            placeholder="מהו גילך?"
             value={age}
             onChange={(e) => setAge(e.target.value)}
             className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">Number of Training Sessions per Week</label>
+          <label className="block text-sm font-bold mb-2">מספר אימונים בשבוע</label>
           <input
             type="number"
-            placeholder="Sessions per Week"
+            placeholder="כמה פעמים בשבוע תרצה להתאמן?"
             value={sessionsPerWeek}
             onChange={(e) => setSessionsPerWeek(e.target.value)}
             className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">Number of Weeks</label>
+          <label className="block text-sm font-bold mb-2">זמן שיקום (שבועות)</label>
           <input
             type="number"
-            placeholder="Number of Weeks"
+            placeholder="מה משך זמן השיקום לפציעתך?"
             value={numberOfWeeks}
             onChange={(e) => setNumberOfWeeks(e.target.value)}
             className="border border-gray-300 dark:border-gray-700 p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
@@ -183,7 +183,7 @@ const GeneratePlan = () => {
             onClick={generatePlan}
             className="bg-blue-500 dark:bg-blue-700 text-white p-2 rounded w-full hover:bg-blue-600 dark:hover:bg-blue-800 font-bold"
           >
-            Generate Plan
+            צור תוכנית
           </button>
         </div>
         {error && <p className="text-red-500 dark:text-red-400">{error}</p>}
