@@ -14,8 +14,9 @@ import {
   getTopExercisesByDislikes,
   getUserRatingsCount,
   getPostRatingsCount,
-  getAllExerciseRatings, // Import the new function
-  getTopExercisesByLikes // Import the new function
+  getAllExerciseRatings,
+  getTopExercisesByLikes,
+  getAllExerciseRatingsByCategory // Import the new function
 } from '../controllers/post.js';
 import { authMiddleware, adminMiddleware } from '../middleware/auth.js';
 
@@ -25,9 +26,10 @@ router.get('/ratings/count', getPostRatingsCount);
 router.get('/category/ratings', getCategoryRatings);
 router.get('/category/likesdislikes', getCategoryLikesDislikes);
 router.get('/user/ratingscount', getUserRatingsCount);
-router.get('/exercises/ratings', getAllExerciseRatings); // New route for fetching all exercise ratings
-router.get('/top/likes', getTopExercisesByLikes); // New route for fetching top exercises by likes
+router.get('/exercises/ratings', getAllExerciseRatings);
+router.get('/top/likes', getTopExercisesByLikes);
 router.get('/top/dislikes', getTopExercisesByDislikes);
+router.get('/category/exercises/ratings', getAllExerciseRatingsByCategory); // New route
 router.get('/', getPosts);
 router.get('/:id', getPost);
 router.post('/', authMiddleware, addPost);

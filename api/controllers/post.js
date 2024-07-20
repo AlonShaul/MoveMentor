@@ -185,6 +185,48 @@ export const getTopExercisesByLikes = async (req, res) => {
 
 
 
+
+
+export const getAllExerciseRatingsByCategory = async (req, res) => {
+  try {
+    const posts = await Post.find();
+    const categoryExerciseRatings = {};
+
+    posts.forEach(post => {
+      if (!categoryExerciseRatings[post.cat]) {
+        categoryExerciseRatings[post.cat] = [];
+      }
+      const validRatings = post.ratings.filter(r => r.value !== 0);
+      if (validRatings.length > 0) {
+        const sumRatings = validRatings.reduce((sum, r) => sum + r.value, 0);
+        const avgRating = sumRatings / validRatings.length;
+        categoryExerciseRatings[post.cat].push({
+          title: post.title,
+          averageRating: avgRating.toFixed(2),
+          ratingCount: validRatings.length
+        });
+      }
+    });
+
+    const response = Object.keys(categoryExerciseRatings).map(category => ({
+      categoryName: category,
+      exercises: categoryExerciseRatings[category]
+    }));
+
+    console.log("Category Exercise Ratings:", response);
+    res.status(200).json(response);
+  } catch (err) {
+    console.error("Error fetching category exercise ratings:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
+
+
+
+
 export const generateExercisePlan = async (req, res) => {
   try {
     const userId = req.user._id;
