@@ -14,7 +14,6 @@ const UserProfile = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [activeTabs, setActiveTabs] = useState({});
   const [hoverRatings, setHoverRatings] = useState({});
-  const [userRatings, setUserRatings] = useState({});
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -47,7 +46,26 @@ const UserProfile = () => {
                   Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
               });
-              return planRes.data;
+
+              const planData = planRes.data;
+              planData.exercises = await Promise.all(planData.exercises.map(async (exercise) => {
+                const postRes = await axios.get(`${apiUrl}/api/posts/${exercise.postId}`, {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                  }
+                });
+
+                const postData = postRes.data;
+                exercise.liked = postData.likes.includes(currentUser._id);
+                exercise.disliked = postData.dislikes.includes(currentUser._id);
+
+                const userRating = postData.ratings.find(rating => rating.userId === currentUser._id);
+                exercise.userRating = userRating ? userRating.value : 0;
+                exercise.avgRating = postData.rating;
+                return exercise;
+              }));
+
+              return planData;
             }));
             return { ...group, plans };
           }));
@@ -265,27 +283,27 @@ const UserProfile = () => {
   }
 
   if (!userDetails) {
-    return <div className="text-gray-900 dark:text-white">Loading...</div>;
+    return <div className="text-gray-900 dark:text-white">טוען...</div>;
   }
 
   return (
-    <div className="profile-page p-4 md:p-8 mt-10 md:mt-40 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">User Profile</h1>
-      <div className="profile-info bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4">
-        <p><strong>Username:</strong> {userDetails.username}</p>
-        <p><strong>Email:</strong> {userDetails.email}</p>
-        <p><strong>Role:</strong> {userDetails.role}</p>
+    <div dir='rtl' className="profile-page p-4 md:p-8 mt-10 md:mt-40 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">פרופיל</h1>
+      <div dir='rtl' className="profile-info bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4">
+        <p><strong>שם משתמש:</strong> {userDetails.username}</p>
+        <p><strong>מייל:</strong> {userDetails.email}</p>
+        <p><strong>סוג משתמש:</strong> {userDetails.role}</p>
       </div>
       <div className="user-plans bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold mb-4 text-center">Your Plan Groups</h2>
+        <h2 className="text-3xl font-bold mb-4 text-center">התוכניות שלך</h2>
         <div className="mb-4">
-          <label className="block text-gray-900 dark:text-white text-sm font-bold mb-2">Select Category</label>
+          <label className="block text-gray-900 dark:text-white text-sm font-bold mb-2">בחר תוכנית</label>
           <select
             value={selectedCategory}
             onChange={handleCategoryChange}
             className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2 rounded w-full"
           >
-            <option value="">All Categories</option>
+            <option value="">כל הקטגוריות</option>
             {categories.map((cat, index) => (
               <option key={index} value={cat}>
                 {cat}
@@ -295,55 +313,59 @@ const UserProfile = () => {
         </div>
         {filteredPlanGroups.length > 0 ? (
           filteredPlanGroups.map((group, groupIndex) => (
-            <div key={groupIndex} className="mb-6">
+            <div dir='rtl' key={groupIndex} className="mb-6">
               <div className="bg-gradient-to-r from-blue-100 to-blue-200 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg mb-6 text-center shadow-lg">
-                <p className="text-xl font-semibold text-blue-700 dark:text-blue-300"><strong>Group Name:</strong> {group.groupName}</p>
-                <p className="text-xl font-semibold text-blue-700 dark:text-blue-300"><strong>Category:</strong> {group.category}</p>
-                <p className="text-xl font-semibold text-blue-700 dark:text-blue-300"><strong>Number of Weeks:</strong> {group.plans[0].numberOfWeeks}</p>
-                <p className="text-xl font-semibold text-blue-700 dark:text-blue-300"><strong>Sessions per Week:</strong> {group.plans[0].sessionsPerWeek}</p>
-                <p className="text-xl font-semibold text-blue-700 dark:text-blue-300"><strong>Date:</strong> {formatDate(group.plans[0].date)}</p>
-                <p className="text-xl font-semibold text-blue-700 dark:text-blue-300"><strong>Total Duration:</strong> {group.plans[0].duration} minutes</p>
-                <button
-                  className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-200"
-                  onClick={() => deletePlan(group.plans[0]._id, group._id)}
-                >
-                  Delete Plan
-                </button>
-                <button
-                  className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-200 ml-2"
-                  onClick={() => replan(group.plans[0]._id, group._id, group.category, group.plans[0].duration, group.plans[0].adaptedForThirdAge, group.plans[0].adaptedForChildren, group.plans[0].numberOfWeeks, group.plans[0].sessionsPerWeek)}
-                >
-                  Replan
-                </button>
+                <p className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-2"><strong>תוכנית:</strong> {group.groupName}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <p className="text-lg font-medium text-blue-700 dark:text-blue-300"><strong>קטגוריה:</strong> {group.category}</p>
+                  <p className="text-lg font-medium text-blue-700 dark:text-blue-300"><strong>זמן שיקום:</strong> {group.plans[0].numberOfWeeks} שבועות</p>
+                  <p className="text-lg font-medium text-blue-700 dark:text-blue-300"><strong>מספר אימונים בשבוע:</strong> {group.plans[0].sessionsPerWeek}</p>
+                  <p className="text-lg font-medium text-blue-700 dark:text-blue-300"><strong>תאריך:</strong> {formatDate(group.plans[0].date)}</p>
+                  <p className="text-lg font-medium text-blue-700 dark:text-blue-300"><strong>זמן ביצוע:</strong> {group.plans[0].duration} דקות</p>
+                </div>
+                <div className="flex justify-center mt-8">
+                  <button
+                    className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-200 mx-2"
+                    onClick={() => deletePlan(group.plans[0]._id, group._id)}
+                  >
+                    מחק תוכנית
+                  </button>
+                  <button
+                    className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-200 mx-2"
+                    onClick={() => replan(group.plans[0]._id, group._id, group.category, group.plans[0].duration, group.plans[0].adaptedForThirdAge, group.plans[0].adaptedForChildren, group.plans[0].numberOfWeeks, group.plans[0].sessionsPerWeek)}
+                  >
+                    תוכנית חדשה
+                  </button>
+                </div>
               </div>
               {group.plans.map((plan, planIndex) => (
                 <div key={plan._id} className="plan mb-4">
-                  <h1 className="text-lg font-bold mb-2 text-center">Week {planIndex + 1}</h1>
+                  <h1 className="text-lg font-bold mb-2 text-center">שבוע {planIndex + 1}</h1>
                   <div className="tabs mb-4 flex justify-center">
                     <button
                       className={`tab-button ${activeTabs[group._id]?.[plan._id] === 'exercises' ? 'active' : ''} py-2 px-4`}
                       onClick={() => handleTabChange(group._id, plan._id, 'exercises')}
                     >
-                      Exercises
+                      תרגילים
                     </button>
                     <button
                       className={`tab-button ${activeTabs[group._id]?.[plan._id] === 'feedback' ? 'active' : ''} py-2 px-4`}
                       onClick={() => handleTabChange(group._id, plan._id, 'feedback')}
                     >
-                      Feedback
+                     משו"ב
                     </button>
                   </div>
                   {activeTabs[group._id]?.[plan._id] === 'exercises' ? (
-                    <table className="min-w-full divide-y divide-gray-200">
+                    <table dir='rtl' className="min-w-full divide-y divide-gray-200">
                       <thead>
                         <tr>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Title</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Video</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sets / Reps</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Adapted for Third Age</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Adapted for Children</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Duration</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">כותרת</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">הסבר</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">וידאו</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">סטים / חזרות</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">מותאם למבוגרים</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">מותאם לילדים</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">זמן ביצוע</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
@@ -351,17 +373,17 @@ const UserProfile = () => {
                           <tr key={exerciseIndex}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{exercise.title}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-center">
                               {exercise.videoUrl && (
                                 <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
-                                  Video
+                                  תרגיל
                                 </a>
                               )}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Sets: {exercise.sets} / Reps: {exercise.turns}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForThirdAge ? 'Yes' : 'No'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForChildren ? 'Yes' : 'No'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.duration} minutes</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">סטים: {exercise.sets} / חזרות: {exercise.turns}</td>
+                            <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForThirdAge ? 'כן' : 'לא'}</td>
+                            <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForChildren ? 'כן' : 'לא'}</td>
+                            <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.duration} דקות</td>
                           </tr>
                         ))}
                       </tbody>
@@ -370,12 +392,12 @@ const UserProfile = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead>
                         <tr>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Title</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Video</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rating</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Like</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Dislike</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">כותרת</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">הסבר</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">וידאו</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">דירוג</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Like</th>
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Dislike</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
@@ -386,14 +408,14 @@ const UserProfile = () => {
                             <tr key={exerciseIndex}>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{exercise.title}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                 {exercise.videoUrl && (
                                   <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
-                                    Video
+                                    תרגיל
                                   </a>
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                 <div className="flex items-center">
                                   {currentUser && (
                                     <div className="ml-2 flex">
@@ -413,20 +435,20 @@ const UserProfile = () => {
                                   )}
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                 <button
                                   onClick={() => handleLike(exercise._id, exercise.postId, plan._id)}
-                                  className={`text-2xl transform transition-transform ${exercise.liked ? "text-blue-500 scale-125" : "text-gray-300"}`}
+                                  className={`text-2xl transform transition-transform duration-200${exercise.liked ? "text-blue-500 scale-150" : "text-gray-300"}`}
                                   onMouseEnter={(e) => e.target.classList.add("scale-110")}
                                   onMouseLeave={(e) => e.target.classList.remove("scale-110")}
                                 >
                                   &#128077;
                                 </button>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                 <button
                                   onClick={() => handleDislike(exercise._id, exercise.postId, plan._id)}
-                                  className={`text-2xl transform transition-transform ${exercise.disliked ? "text-red-500 scale-125" : "text-gray-300"}`}
+                                  className={`text-2xl transform transition-transform duration-200${exercise.disliked ? "text-red-500 scale-150" : "text-gray-300"}`}
                                   onMouseEnter={(e) => e.target.classList.add("scale-110")}
                                   onMouseLeave={(e) => e.target.classList.remove("scale-110")}
                                 >
@@ -447,9 +469,9 @@ const UserProfile = () => {
           <p className="text-gray-900 dark:text-white">No plan groups found for the selected category.</p>
         )}
       </div>
-      <div className="mt-8">
+      <div className="mt-8 flex justify-center">
         <Link to="/generate-plan" className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200">
-          Generate New Plan
+          צור תוכנית חדשה
         </Link>
       </div>
     </div>
