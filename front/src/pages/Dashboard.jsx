@@ -3,9 +3,10 @@ import axios from 'axios';
 import { useApi } from '../context/ApiContext';
 import { Bar, Pie } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
-import ChartDataLabels from 'chartjs-plugin-datalabels'; // Import the plugin
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import 'chartjs-plugin-datalabels';
 
-Chart.register(ChartDataLabels); // Register the plugin
+Chart.register(ChartDataLabels);
 
 const Dashboard = () => {
   const [categoryRatings, setCategoryRatings] = useState({});
@@ -14,9 +15,12 @@ const Dashboard = () => {
   const [postRatingsCount, setPostRatingsCount] = useState([]);
   const [exerciseRatings, setExerciseRatings] = useState([]);
   const [topExercises, setTopExercises] = useState([]);
-  const [topDislikedExercises, setTopDislikedExercises] = useState([]); // State for top disliked exercises
+  const [topDislikedExercises, setTopDislikedExercises] = useState([]);
+  const [categoryExerciseRatings, setCategoryExerciseRatings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   const apiUrl = useApi();
 
   useEffect(() => {
@@ -28,7 +32,8 @@ const Dashboard = () => {
         const postRatingsCountResponse = await axios.get(`${apiUrl}/api/posts/ratings/count`);
         const exerciseRatingsResponse = await axios.get(`${apiUrl}/api/posts/exercises/ratings`);
         const topExercisesResponse = await axios.get(`${apiUrl}/api/posts/top/likes`);
-        const topDislikedExercisesResponse = await axios.get(`${apiUrl}/api/posts/top/dislikes`); // Fetch top disliked exercises
+        const topDislikedExercisesResponse = await axios.get(`${apiUrl}/api/posts/top/dislikes`);
+        const categoryExerciseRatingsResponse = await axios.get(`${apiUrl}/api/posts/category/exercises/ratings`);
 
         setCategoryRatings(ratingsResponse.data);
         setLikesDislikes(likesDislikesResponse.data);
@@ -36,7 +41,8 @@ const Dashboard = () => {
         setPostRatingsCount(postRatingsCountResponse.data);
         setExerciseRatings(exerciseRatingsResponse.data);
         setTopExercises(topExercisesResponse.data);
-        setTopDislikedExercises(topDislikedExercisesResponse.data); // Set top disliked exercises data
+        setTopDislikedExercises(topDislikedExercisesResponse.data);
+        setCategoryExerciseRatings(categoryExerciseRatingsResponse.data);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -159,7 +165,7 @@ const Dashboard = () => {
         datalabels: {
           color: '#000000',
           formatter: (value, context) => {
-            return value; // Display the number of likes
+            return value;
           },
         },
       },
@@ -178,14 +184,38 @@ const Dashboard = () => {
         datalabels: {
           color: '#000000',
           formatter: (value, context) => {
-            return value; // Display the number of dislikes
+            return value;
           },
         },
       },
     ],
   };
 
-  const options = {
+  const mixedChartData = categoryExerciseRatings.map(category => ({
+    labels: category.exercises.map(exercise => exercise.title),
+    datasets: [
+      {
+        type: 'bar',
+        label: 'Average Rating',
+        data: category.exercises.map(exercise => exercise.averageRating),
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1,
+      },
+      {
+        type: 'line',
+        label: 'Number of Ratings',
+        data: category.exercises.map(exercise => exercise.ratingCount),
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1,
+        fill: false,
+      },
+    ],
+    categoryName: category.categoryName // Add category name to each chart data
+  }));
+
+  const carouselOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -211,6 +241,14 @@ const Dashboard = () => {
     },
   };
 
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % mixedChartData.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + mixedChartData.length) % mixedChartData.length);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       <div className="container mx-auto p-4 mt-20">
@@ -218,44 +256,61 @@ const Dashboard = () => {
         <h2 className="flex justify-center text-2xl font-bold mb-4">Category Ratings</h2>
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
           <div className="h-96">
-            <Bar data={ratingsData} options={options} />
+            <Bar data={ratingsData} options={carouselOptions} />
           </div>
         </div>
         <h2 className="flex justify-center text-2xl font-bold mb-4">Likes and Dislikes by Category</h2>
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
           <div className="h-96">
-            <Bar data={likesDislikesData} options={options} />
+            <Bar data={likesDislikesData} options={carouselOptions} />
           </div>
         </div>
         <h2 className="flex justify-center text-2xl font-bold mb-4">Most Active Users</h2>
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
           <div className="h-96">
-            <Bar data={userRatingsData} options={options} />
+            <Bar data={userRatingsData} options={carouselOptions} />
           </div>
         </div>
         <h2 className="flex justify-center text-2xl font-bold mb-4">Most Rated Posts</h2>
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
           <div className="h-96">
-            <Bar data={postRatingsData} options={options} />
+            <Bar data={postRatingsData} options={carouselOptions} />
           </div>
         </div>
         <h2 className="flex justify-center text-2xl font-bold mb-4">Exercise Ratings</h2>
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
           <div className="h-96">
-            <Bar data={exerciseRatingsData} options={options} />
+            <Bar data={exerciseRatingsData} options={carouselOptions} />
           </div>
         </div>
         <h2 className="flex justify-center text-2xl font-bold mb-4">Top 5 Exercises by Likes</h2>
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
           <div className="h-96">
-            <Pie data={topExercisesData} options={options} plugins={[ChartDataLabels]} />
+            <Pie data={topExercisesData} options={carouselOptions} plugins={[ChartDataLabels]} />
           </div>
         </div>
         <h2 className="flex justify-center text-2xl font-bold mb-4">Top 5 Exercises by Dislikes</h2>
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
           <div className="h-96">
-            <Pie data={topDislikedExercisesData} options={options} plugins={[ChartDataLabels]} />
+            <Pie data={topDislikedExercisesData} options={carouselOptions} plugins={[ChartDataLabels]} />
           </div>
+        </div>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">Category Exercise Ratings</h2>
+        <div className="carousel-container relative w-full flex justify-center items-center">
+          <button onClick={handlePrev} className="absolute left-0 z-10 p-2 bg-gray-800 text-white rounded-full focus:outline-none">
+            &lt;
+          </button>
+          <div className="carousel w-full flex justify-center items-center overflow-hidden">
+            <div className="carousel-item transition-all duration-700 ease-in-out cursor-pointer w-full h-96">
+              <h3 className="text-center text-xl font-bold mb-2">{mixedChartData[currentIndex].categoryName}</h3> {/* Add category title */}
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8 w-full h-full">
+                <Bar data={mixedChartData[currentIndex]} options={carouselOptions} />
+              </div>
+            </div>
+          </div>
+          <button onClick={handleNext} className="absolute right-0 z-10 p-2 bg-gray-800 text-white rounded-full focus:outline-none">
+            &gt;
+          </button>
         </div>
       </div>
     </div>
