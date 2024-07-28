@@ -166,7 +166,7 @@ export const generatePlan = async (req, res) => {
       newPlans.push(newPlan._id);
     }
 
-    const planGroupName = `Plan Group ${user.planGroups.length + 1}`;
+    const planGroupName = `${user.planGroups.length + 1}`;
     user.planGroups.push({ groupName: planGroupName, category, plans: newPlans });
 
     await user.save();
