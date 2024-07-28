@@ -85,7 +85,7 @@ const Dashboard = () => {
     labels: Object.keys(categoryRatings),
     datasets: [
       {
-        label: 'Average Rating',
+        label: 'דירוג ממוצע',
         data: Object.values(categoryRatings).map(avg => avg.toFixed(2)),
         backgroundColor: colors.slice(0, Object.keys(categoryRatings).length),
         borderColor: borderColor.slice(0, Object.keys(categoryRatings).length),
@@ -118,7 +118,7 @@ const Dashboard = () => {
     labels: userRatingsCount.map(user => user.username),
     datasets: [
       {
-        label: 'Number of Ratings',
+        label: 'מספר הדירוגים',
         data: userRatingsCount.map(user => user.count),
         backgroundColor: 'rgba(153, 102, 255, 0.2)',
         borderColor: 'rgba(153, 102, 255, 1)',
@@ -131,7 +131,7 @@ const Dashboard = () => {
     labels: postRatingsCount.map(post => post.title),
     datasets: [
       {
-        label: 'Number of Ratings',
+        label: 'מספר הדירוגים',
         data: postRatingsCount.map(post => Math.round(post.ratingCount)),
         backgroundColor: 'rgba(255, 159, 64, 0.2)',
         borderColor: 'rgba(255, 159, 64, 1)',
@@ -144,7 +144,7 @@ const Dashboard = () => {
     labels: exerciseRatings.map(exercise => `${exercise.title} (${exercise.category})`),
     datasets: [
       {
-        label: 'Average Rating',
+        label: 'דירוג ממוצע',
         data: exerciseRatings.map(exercise => parseFloat(exercise.averageRating)),
         backgroundColor: colors.slice(0, exerciseRatings.length),
         borderColor: borderColor.slice(0, exerciseRatings.length),
@@ -196,7 +196,7 @@ const Dashboard = () => {
     datasets: [
       {
         type: 'bar',
-        label: 'Average Rating',
+        label: 'דירוג ממוצע',
         data: category.exercises.map(exercise => exercise.averageRating),
         backgroundColor: 'rgba(54, 162, 235, 0.2)',
         borderColor: 'rgba(54, 162, 235, 1)',
@@ -204,7 +204,7 @@ const Dashboard = () => {
       },
       {
         type: 'line',
-        label: 'Number of Ratings',
+        label: 'מספר הדירוגים',
         data: category.exercises.map(exercise => exercise.ratingCount),
         backgroundColor: 'rgba(255, 99, 132, 0.2)',
         borderColor: 'rgba(255, 99, 132, 1)',
@@ -238,6 +238,13 @@ const Dashboard = () => {
           stepSize: 1,
         },
       },
+      x: {
+        ticks: {
+          font: {
+            size: 20,
+          },
+        },
+      },
     },
   };
 
@@ -251,57 +258,73 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
-      <div className="container mx-auto p-4 mt-20">
-        <h1 className="flex justify-center text-3xl font-bold mb-4">Dashboard</h1>
-        <h2 className="flex justify-center text-2xl font-bold mb-4">Category Ratings</h2>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+      <div className="container mx-auto p-4 mt-40">
+        <h1 className="flex justify-center text-6xl font-bold mb-16">דשבורד</h1>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">דירוג כוכבים לפי קטגוריות</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">גרף מקלות המציג את ממוצע דירוג הכוכבים עבור כל קטגוריה.</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">הגרף מאפשר לראות את הביצועים של כל קטגוריה בהשוואה לאחרות בצורה ברורה וויזואלית.</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-24">
           <div className="h-96">
             <Bar data={ratingsData} options={carouselOptions} />
           </div>
         </div>
-        <h2 className="flex justify-center text-2xl font-bold mb-4">Likes and Dislikes by Category</h2>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+        <h2 dir='rtl' className="flex justify-center text-2xl font-bold mb-4">דירוג Likes ו - DisLike לפי קטגוריות</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">גרף מקלות המציג את מספר הלייקים והדיסלייקים עבור כל קטגוריה.</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">הגרף מאפשר להשוות בין הפופולריות וההעדפות של משתמשים בכל קטגוריה בצורה ברורה וויזואלית.</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-24">
           <div className="h-96">
             <Bar data={likesDislikesData} options={carouselOptions} />
           </div>
         </div>
-        <h2 className="flex justify-center text-2xl font-bold mb-4">Most Active Users</h2>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+        <h2 className="flex justify-center text-2xl font-bold mb-4">רמת פעילות המשתמשים</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">גרף מקלות המציג את רמת הפעילות של כל משתמש על פי מספר הדירוגים שהעניק.</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">הגרף מאפשר להבחין במידת המעורבות של המשתמשים ולזהות משתמשים פעילים במיוחד.</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-24">
           <div className="h-96">
             <Bar data={userRatingsData} options={carouselOptions} />
           </div>
         </div>
-        <h2 className="flex justify-center text-2xl font-bold mb-4">Most Rated Posts</h2>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+        <h2 className="flex justify-center text-2xl font-bold mb-4">דירוג התרגילים הפופולריים ביותר</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">גרף מקלות המציג את הפופולריות של כל תרגיל על פי מספר הדירוגים שקיבל מכלל המשתמשים.</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">הגרף מאפשר לראות אילו תרגילים מועדפים על המשתמשים ולזהות את התרגילים האהובים ביותר.</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-24">
           <div className="h-96">
             <Bar data={postRatingsData} options={carouselOptions} />
           </div>
         </div>
-        <h2 className="flex justify-center text-2xl font-bold mb-4">Exercise Ratings</h2>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+        <h2 className="flex justify-center text-2xl font-bold mb-4">דירוג כוכבים לתרגילים</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">גרף מקלות המציג את הדירוג הכללי של כל תרגיל.</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">הגרף מאפשר לראות את ממוצע דירוג הכוכבים שהתקבל עבור כל תרגיל, ובכך לזהות את התרגילים המדורגים ביותר על ידי המשתמשים.</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-24">
           <div className="h-96">
             <Bar data={exerciseRatingsData} options={carouselOptions} />
           </div>
         </div>
-        <h2 className="flex justify-center text-2xl font-bold mb-4">Top 5 Exercises by Likes</h2>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+        <h2 className="flex justify-center text-2xl font-bold mb-4">דירוג חמשת התרגילים האהובים ביותר</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">גרף המציג את חמשת התרגילים שקיבלו את מספר הלייקים הגבוה ביותר מכלל המשתמשים.</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">הגרף מאפשר לראות את התרגילים הפופולריים ביותר ולהבין אילו תרגילים מועדפים במיוחד על ידי המשתמשים.</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-24">
           <div className="h-96">
             <Pie data={topExercisesData} options={carouselOptions} plugins={[ChartDataLabels]} />
           </div>
         </div>
-        <h2 className="flex justify-center text-2xl font-bold mb-4">Top 5 Exercises by Dislikes</h2>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8">
+        <h2 className="flex justify-center text-2xl font-bold mb-4">דירוג חמשת התרגילים הפחות אהובים</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">גרף המציג את חמשת התרגילים שקיבלו את מספר הדיסלייקים הגבוה ביותר מכלל המשתמשים.</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">הגרף מאפשר לזהות את התרגילים הפחות מועדפים ולהבין אילו תרגילים פחות אהובים על משתמשים.</h2>
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-24">
           <div className="h-96">
             <Pie data={topDislikedExercisesData} options={carouselOptions} plugins={[ChartDataLabels]} />
           </div>
         </div>
-        <h2 className="flex justify-center text-2xl font-bold mb-4">Category Exercise Ratings</h2>
+        <h2 className="flex justify-center text-2xl font-bold mb-4">דירוג כוכבים לכל התרגילים לפי קטגוריות</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">קרוסלה המציגה את כל הקטגוריות, ובתוך כל קטגוריה מוצג הדירוג הכולל של כל תרגיל.</h2>
+        <h2 dir='rtl' className="flex justify-center text-1xl font-bold mb-4">הקרוסלה מאפשרת לדפדף בין הקטגוריות השונות ולראות את דירוג הכוכבים של כל תרגיל בצורה נוחה ומסודרת.</h2>
         <div className="carousel-container relative w-full flex justify-center items-center">
           <button onClick={handlePrev} className="absolute left-0 z-10 p-2 bg-gray-800 text-white rounded-full focus:outline-none">
             &lt;
           </button>
           <div className="carousel w-full flex justify-center items-center overflow-hidden">
-            <div className="carousel-item transition-all duration-700 ease-in-out cursor-pointer w-full h-96">
+            <div className="carousel-item transition-all duration-700 ease-in-out cursor-pointer w-full h-96 mb-12">
               <h3 className="text-center text-xl font-bold mb-2">{mixedChartData[currentIndex].categoryName}</h3> {/* Add category title */}
               <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-8 w-full h-full">
                 <Bar data={mixedChartData[currentIndex]} options={carouselOptions} />

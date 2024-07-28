@@ -206,12 +206,12 @@ const Bot = () => {
           if (sessionsPerWeek < 1) {
             newMessages.push({ from: 'bot', text: 'מספר האימונים קצר מדי - המערכת יכולה ליצור תוכנית שיקום עם 1-3 אימונים בשבוע וזה גם מה שממולץ' });
           } else if (sessionsPerWeek > 3) {
-            newMessages.push({ from: 'bot', text: 'מספר האימונים ארוך מדי - המערכת יכולה ליצור תוכנית שיקום עם 1-3 אימונים בשבוע וזה גם מה שממולץ' });
+            newMessages.push({ from: 'bot', text: 'מספר האימונים ארוך מדי - המערכת יכולה ליצור תוכנית שיק1ום עם 1-3 אימונים בשבוע וזה גם מה שממולץ' });
           } else if (durationForValidation) {
             if (sessionsPerWeek === 3 && durationForValidation > 24) {
-              newMessages.push({ from: 'bot', text: "משך האימון חייב להיות בין 6-24 דקות כאשר מתאמנים 3 פעמים בשבוע, אם תרצה/י להתאמן יותר דקות בכל אימון אתה צריך להוריד את מספר האימונים בשבוע." });
+              newMessages.push({ from: 'bot', text: "משך האימון חייב להיות בין 6-24 דקות כאשר מתאמנים 3 פעמים בשבוע." });
             } else if (sessionsPerWeek === 2 && (durationForValidation < 8 || durationForValidation > 32)) {
-              newMessages.push({ from: 'bot', text: "משך האימון חייב להיות בין 8-32 דקות כאשר מתאמנים 2 פעמיים בשבוע, אם תרצה/י להתאמן יותר דקות בכל אימון אתה צריך להוריד את מספר האימונים בשבוע." });
+              newMessages.push({ from: 'bot', text: "משך האימון חייב להיות בין 8-32 דקות כאשר מתאמנים פעמיים בשבוע." });
             } else if (sessionsPerWeek === 1 && (durationForValidation < 10 || durationForValidation > 40)) {
               newMessages.push({ from: 'bot', text: 'משך האימון חייב להיות בין 10-40 דקות כאשר מתאמנים פעם בשבוע.' });
             } else {

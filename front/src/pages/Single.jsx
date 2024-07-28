@@ -28,10 +28,8 @@ const Single = () => {
         const res = await axios.get(`${apiUrl}/api/posts/${postId}`);
         setPost(res.data);
         setCategory(res.data.cat);
-        // Initialize rating state
         const userRating = res.data.ratings.find(r => r.userId === currentUser._id)?.value || 0;
         setUserRating(userRating);
-
         setLiked(res.data.likes.includes(currentUser._id));
         setDisliked(res.data.dislikes.includes(currentUser._id));
       } catch (err) {
@@ -59,12 +57,6 @@ const Single = () => {
     return doc.body.textContent || "";
   };
 
-  const formatDuration = (duration) => {
-    if (!duration) return "";
-    const { hours, minutes, seconds } = duration;
-    return `${hours || 0}h ${minutes || 0}m ${seconds || 0}s`;
-  };
-
   const renderStars = () => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -72,7 +64,7 @@ const Single = () => {
         <button
           key={i}
           type="button"
-          className={`text-2xl ${i <= (hover || userRating) ? "text-yellow-500" : "text-gray-300"} ${i < 5 ? 'mr-1 md:mr-2' : ''}`}
+          className={`text-2xl ${i <= (hover || userRating) ? "text-yellow-500" : "text-gray-300"} ${i < 5 ? 'ml-1 md:ml-2' : ''}`}
           onClick={() => updateRating(i)}
           onMouseEnter={() => setHover(i)}
           onMouseLeave={() => setHover(userRating)}
@@ -132,91 +124,74 @@ const Single = () => {
   };
 
   return (
-    <div className="single p-4 md:p-8 mt-40 bg-gray-100 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-white">
-      <div className="category text-center py-4 bg-gray-100 dark:bg-gray-800 mb-4">
-        <h2 className="text-xl md:text-2xl font-bold">
-          {post.cat && `Category: ${post.cat}`}
-        </h2>
-      </div>
-      <div className="content text-center space-y-4">
-        <div className="user flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
-          {(currentUser?.username === post.username || currentUser?.role === 'admin') && (
-            <div className="edit flex space-x-4">
-              <Link to={`/write?edit=${postId}`} state={post}>
-                <img src={Edit} alt="Edit" className="w-6 h-6" />
-              </Link>
-              <img onClick={handleDelete} src={Delete} alt="Delete" className="w-6 h-6 cursor-pointer" />
+    <div className="single p-4 md:p-20 mt-28 bg-gray-100 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-white" dir="rtl">
+      <div className="flex flex-col md:flex-row gap-32">
+        <div className="flex-1">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">{post.title}</h1>
+          <div className="description mb-6 text-base md:text-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: post.explanation }} />
+          <div className="video-container mb-6" style={{ width: '100%', height: 'auto' /* Adjust width and height here */ }}>
+            {post.videoUrl && (
+              <video className="w-full h-full rounded-md shadow-md" controls style={{ width: '100%', height: 'auto' /* Adjust width and height here */ }}>
+                <source src={post.videoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            )}
+          </div>
+          <div className="bg-white dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="likes-dislikes flex items-center space-x-4">
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center space-x-1 text-lg ${liked ? "text-blue-500" : "text-gray-500"} transition-transform transform ${liked ? "scale-150" : ""}`}
+                  onMouseEnter={(e) => e.target.classList.add("scale-125")}
+                  onMouseLeave={(e) => e.target.classList.remove("scale-125")}
+                >
+                  <span>👍</span><span>{post.likes?.length || 0}</span>
+                </button>
+                <button
+                  onClick={handleDislike}
+                  className={`flex items-center space-x-1 text-lg ${disliked ? "text-red-500" : "text-gray-500"} transition-transform transform ${disliked ? "scale-150" : ""}`}
+                  onMouseEnter={(e) => e.target.classList.add("scale-125")}
+                  onMouseLeave={(e) => e.target.classList.remove("scale-125")}
+                >
+                  <span>👎</span><span>{post.dislikes?.length || 0}</span>
+                </button>
+              </div>
+              <div className="rating flex items-center space-x-1">
+                {renderStars()}
+              </div>
+              {(currentUser?.username === post.username || currentUser?.role === 'admin') && (
+                <div className="edit-delete flex space-x-4">
+                  <Link to={`/write?edit=${postId}`} state={post}>
+                    <img src={Edit} alt="Edit" className="w-8 h-8 transition-transform transform hover:scale-110" />
+                  </Link>
+                  <img onClick={handleDelete} src={Delete} alt="Delete" className="w-8 h-8 cursor-pointer transition-transform transform hover:scale-110" />
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <h1 className="text-2xl md:text-3xl font-bold">{post.title}</h1>
-        <div dangerouslySetInnerHTML={{ __html: post.explanation }} className="text-base md:text-lg px-4 md:px-0" />
-        {post.videoUrl && (
-          <div className="video space-y-2">
-            <video className="videoPosts w-full max-w-full h-auto md:w-1/2 md:mx-auto" controls>
-              <source src={post.videoUrl} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+            <div className="flex flex-col items-center mt-4 space-y-4" style={{ marginLeft: '-1cm' }}>
+              <div className="flex items-center p-2 rounded-lg text-gray-900 dark:text-white justify-center">
+                <span className="text-sm md:text-base font-bold">מותאם למבוגרים:&nbsp;</span>
+                <span className="text-sm md:text-base">{post.adaptedForThirdAge ? 'כן' : 'לא'}</span>
+              </div>
+              <div className="flex items-center p-2 rounded-lg text-gray-900 dark:text-white justify-center">
+                <span className="text-sm md:text-base font-bold">מותאם לילדים:&nbsp;</span>
+                <span className="text-sm md:text-base">{post.adaptedForChildren ? 'כן' : 'לא'}</span>
+              </div>
+            </div>
+
           </div>
-        )}
-        <div className="adaptations text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-lg">
-          <h2 className="text-lg md:text-xl font-bold mb-4">Adaptations</h2>
-          <div className="overflow-hidden">
-            <table className="w-1/2 mx-auto divide-y divide-gray-200 dark:divide-gray-600 text-center">
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
-                <tr>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm font-medium text-gray-900 dark:text-gray-100">Duration:</td>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm text-gray-500 dark:text-gray-300">{formatDuration(post.duration)}</td>
-                </tr>
-                <tr>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm font-medium text-gray-900 dark:text-gray-100">Adapted for Third Age:</td>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm text-gray-500 dark:text-gray-300">{post.adaptedForThirdAge ? 'Yes' : 'No'}</td>
-                </tr>
-                <tr>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm font-medium text-gray-900 dark:text-gray-100">Adapted for Children:</td>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm text-gray-500 dark:text-gray-300">{post.adaptedForChildren ? 'Yes' : 'No'}</td>
-                </tr>
-                <tr>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm font-medium text-gray-900 dark:text-gray-100">Rating:</td>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm text-gray-500 dark:text-gray-300">
-                    <div className="flex justify-center items-center space-x-1 md:space-x-2">
-                      {renderStars()}
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm font-medium text-gray-900 dark:text-gray-100">Like / Dislike:</td>
-                  <td className="px-2 py-2 md:px-4 md:py-4 whitespace-normal text-sm text-gray-500 dark:text-gray-300">
-                    <div className="flex justify-center items-center space-x-1 md:space-x-2">
-                    <button
-                      onClick={handleLike}
-                      className={`text-2xl transform transition-transform duration-200 ${liked ? "text-blue-500 scale-150" : "text-gray-300 dark:text-gray-500"}`}
-                      onMouseEnter={(e) => e.target.classList.add("scale-110")}
-                      onMouseLeave={(e) => e.target.classList.remove("scale-110")}
-                    >
-                      &#128077;
-                    </button>
-                    <button
-                      onClick={handleDislike}
-                      className={`text-2xl transform transition-transform duration-200 ${disliked ? "text-red-500 scale-150" : "text-gray-300 dark:text-gray-500"}`}
-                      onMouseEnter={(e) => e.target.classList.add("scale-110")}
-                      onMouseLeave={(e) => e.target.classList.remove("scale-110")}
-                    >
-                      &#128078;
-                    </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        </div>
+        <div className="w-full md:w-1/4" style={{ width: '25%', height: 'auto' /* Adjust width and height here */ }}>
+          <div className="related-videos h-full overflow-y-auto">
+            {category && (
+              <Suspense fallback={<div className="flex justify-center items-center h-40">Loading...</div>}>
+                <Menu cat={category} currentPostId={post._id} />
+              </Suspense>
+            )}
           </div>
         </div>
       </div>
-      {category && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Menu cat={category} currentPostId={post._id} />
-        </Suspense>
-      )}
     </div>
   );
 };

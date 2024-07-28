@@ -87,7 +87,7 @@ const Navbar = () => {
             </Link>
           )}
           <Link className="link" to="/" key="about">
-            <h6 className="capitalize">אודות</h6>
+            <h6 className="capitalize">כל התרגילים</h6>
           </Link>
           <Link className="link" to="/generate-plan" key="plan">
             <h6 className="capitalize">בניית תוכנית</h6>
@@ -130,7 +130,7 @@ const Navbar = () => {
               <i className="fas fa-times"></i>
             </button>
             <div className="flex flex-col space-y-4">
-              <Link className="link" to="/" onClick={toggleSidebar}>
+              <Link className="link" to="/about" onClick={toggleSidebar}>
                 דף הבית
               </Link>
               <div className="relative">
@@ -156,8 +156,8 @@ const Navbar = () => {
               <Link className="link" to="/generate-plan" onClick={toggleSidebar}>
                 בניית תוכנית
               </Link>
-              <Link className="link" to="/about" onClick={toggleSidebar}>
-                אודות
+              <Link className="link" to="/" onClick={toggleSidebar}>
+                כל התרגילים
               </Link>
               {currentUser && currentUser.role === 'admin' && (
                 <>

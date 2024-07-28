@@ -466,7 +466,7 @@ const UserProfile = () => {
             </div>
           ))
         ) : (
-          <p className="text-gray-900 dark:text-white">No plan groups found for the selected category.</p>
+          <p className="text-gray-900 dark:text-white text-center">לא נמצאו תוכניות שיקום עבורך</p>
         )}
       </div>
       <div className="mt-8 flex justify-center">
