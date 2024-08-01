@@ -5,10 +5,8 @@ export const useApi = () => useContext(ApiContext);
 
 export const ApiProvider = ({ children }) => {
   let apiUrl = '';
-  if (process.env.NODE_ENV === 'production'){
-    apiUrl = 'https://movementor-fyyf.onrender.com';
-  }
-      apiUrl = 'http://localhost:8800'
+      apiUrl = 'https://movementor-fyyf.onrender.com';
+      
 
   return (
     <ApiContext.Provider value={apiUrl}>
