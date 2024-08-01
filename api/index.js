@@ -21,18 +21,13 @@ import { SessionsClient } from '@google-cloud/dialogflow';
 import schedule from 'node-schedule';
 import { sendWeeklyEmail } from './controllers/user.js';
 
-// תזמון שליחת המיילים - כל יום ראשון בשעה 10:00 בבוקר
-const job = schedule.scheduleJob('0 10 * * 0', function(){
-  sendWeeklyEmail();
-});
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://movementor-fyyf.onrender.com','https://movementor-1.onrender.com' , 'https://movementor.onrender.com'], // Allow your frontend URL
+  origin: ['http://localhost:3000', 'https://movementor-fyyf.onrender.com','https://movementor-1.onrender.com', 'https://movementor.onrender.com'],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }));
@@ -141,6 +136,20 @@ app.post('/webhook', express.json(), authMiddleware, async (req, res) => {
   }
 });
 
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'front', 'build')));
+
+// Catch-all route to handle client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'front', 'build', 'index.html'));
+});
+
+// Start the server
 app.listen(process.env.PORT || 8800, () => {
   console.log(`Server running on port ${process.env.PORT || 8800}`);
+});
+
+// Scheduling the weekly email job
+const job = schedule.scheduleJob('0 10 * * 0', function(){
+  sendWeeklyEmail();
 });
