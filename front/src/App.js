@@ -14,7 +14,7 @@ import CategorySelection from "./pages/CategorySelection";
 import { AuthProvider } from "./context/authContext";
 import { CategoryProvider } from "./context/CategoryContext";
 import { ApiProvider } from "./context/ApiContext";
-import PrivateRoute from "./components/PrivateRoute";
+import PrivateRoute from "./components/PrivateRoute"; 
 import Bot from "./pages/Bot"; // Import the Bot component
 import "./style.scss";
 import Dashboard from "./pages/Dashboard";
