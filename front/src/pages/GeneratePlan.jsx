@@ -428,7 +428,7 @@ const GeneratePlan = () => {
       >
         <Box sx={style(darkMode)}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
-            התוכנית שיקום אישית נוצרה בהצלחה
+            תוכנית שיקום אישית נוצרה בהצלחה
           </Typography>
           <Typography id="modal-modal-description" sx={{ mt: 2 }}>
               תוכל לצפות בה בדף המשתמש שלך

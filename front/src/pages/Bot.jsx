@@ -341,7 +341,7 @@ const Bot = () => {
   };
 
   return (
-    <div className="fixed bottom-5 right-5">
+    <div className="fixed bottom-5 right-5 z-10">
       <button onClick={toggleChat} className="p-4 bg-blue-500 text-white rounded-full shadow-lg focus:outline-none">
         {chatVisible ? 'סגור' : 'Chat'}
       </button>

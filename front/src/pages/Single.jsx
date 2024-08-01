@@ -157,7 +157,7 @@ const Single = () => {
                   <span>👎</span><span>{post.dislikes?.length || 0}</span>
                 </button>
               </div>
-              <div className="rating flex items-center space-x-1">
+              <div dir="ltr" className="rating flex items-center space-x-1">
                 {renderStars()}
               </div>
               {(currentUser?.username === post.username || currentUser?.role === 'admin') && (

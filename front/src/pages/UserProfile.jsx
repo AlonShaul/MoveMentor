@@ -5,6 +5,19 @@ import axios from 'axios';
 import { useApi } from '../context/ApiContext';
 import { Link } from 'react-router-dom';
 
+// פונקציה להסרת תגיות HTML, החלפת &nbsp; ברווח רגיל והוספת ירידת שורה אחרי נקודותיים
+function formatText(str) {
+  if ((str === null) || (str === '')) return '';
+  str = str.toString();
+  // הסרת תגיות HTML
+  str = str.replace(/<[^>]*>/g, '');
+  // החלפת &nbsp; ברווח רגיל
+  str = str.replace(/&nbsp;/g, ' ');
+  // הוספת ירידת שורה אחרי נקודותיים
+  str = str.replace(/: /g, ':<br/>');
+  return str;
+}
+
 const UserProfile = () => {
   const { currentUser } = useContext(AuthContext);
   const { categories } = useCategories();
@@ -56,12 +69,18 @@ const UserProfile = () => {
                 });
 
                 const postData = postRes.data;
-                exercise.liked = postData.likes.includes(currentUser._id);
-                exercise.disliked = postData.dislikes.includes(currentUser._id);
+                exercise.liked = postData.likes.includes(currentUser._id) || false;
+                exercise.disliked = postData.dislikes.includes(currentUser._id) || false;
 
                 const userRating = postData.ratings.find(rating => rating.userId === currentUser._id);
                 exercise.userRating = userRating ? userRating.value : 0;
                 exercise.avgRating = postData.rating;
+                
+                // לוודא שהמשתמש לא סימן לייק או דיסלייק כברירת מחדל
+                if (!postData.likes.includes(currentUser._id)) exercise.liked = false;
+                if (!postData.dislikes.includes(currentUser._id)) exercise.disliked = false;
+                if (!userRating) exercise.userRating = 0;
+
                 return exercise;
               }));
 
@@ -287,7 +306,7 @@ const UserProfile = () => {
   }
 
   return (
-    <div dir='rtl' className="profile-page p-4 md:p-8 mt-10 md:mt-40 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+    <div dir='rtl' className="profile-page p-4 md:p-8 mt-10 md:mt-40 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen max-w-full overflow-hidden">
       <h1 className="text-2xl font-bold mb-4">פרופיל</h1>
       <div dir='rtl' className="profile-info bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4">
         <p><strong>שם משתמש:</strong> {userDetails.username}</p>
@@ -301,7 +320,7 @@ const UserProfile = () => {
           <select
             value={selectedCategory}
             onChange={handleCategoryChange}
-            className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2 rounded w-full"
+            className=" -gray-300 dark:-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2 rounded w-full"
           >
             <option value="">כל הקטגוריות</option>
             {categories.map((cat, index) => (
@@ -315,7 +334,7 @@ const UserProfile = () => {
           filteredPlanGroups.map((group, groupIndex) => (
             <div dir='rtl' key={groupIndex} className="mb-6">
               <div className="bg-gradient-to-r from-blue-100 to-blue-200 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg mb-6 text-center shadow-lg">
-                <p className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-2"><strong>תוכנית:</strong> {group.groupName}</p>
+                <p className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-2"><strong>תוכנית:</strong> {groupIndex+1}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <p className="text-lg font-medium text-blue-700 dark:text-blue-300"><strong>קטגוריה:</strong> {group.category}</p>
                   <p className="text-lg font-medium text-blue-700 dark:text-blue-300"><strong>זמן שיקום:</strong> {group.plans[0].numberOfWeeks} שבועות</p>
@@ -339,7 +358,7 @@ const UserProfile = () => {
                 </div>
               </div>
               {group.plans.map((plan, planIndex) => (
-                <div key={plan._id} className="plan mb-4">
+                <div key={plan._id} className="plan mb-4 overflow-hidden">
                   <h1 className="text-lg font-bold mb-2 text-center">שבוע {planIndex + 1}</h1>
                   <div className="tabs mb-4 flex justify-center">
                     <button
@@ -356,111 +375,175 @@ const UserProfile = () => {
                     </button>
                   </div>
                   {activeTabs[group._id]?.[plan._id] === 'exercises' ? (
-                    <table dir='rtl' className="min-w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">כותרת</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">הסבר</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">וידאו</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">סטים / חזרות</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">מותאם למבוגרים</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">מותאם לילדים</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">זמן ביצוע</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
-                        {plan.exercises.map((exercise, exerciseIndex) => (
-                          <tr key={exerciseIndex}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{exercise.title}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-center">
-                              {exercise.videoUrl && (
-                                <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
-                                  תרגיל
-                                </a>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">סטים: {exercise.sets} / חזרות: {exercise.turns}</td>
-                            <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForThirdAge ? 'כן' : 'לא'}</td>
-                            <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForChildren ? 'כן' : 'לא'}</td>
-                            <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.duration} דקות</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <div className="md:hidden">
+                      {plan.exercises.map((exercise, exerciseIndex) => (
+                        <div key={exerciseIndex} className="mobile-item mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                          <p className="mobile-title text-lg font-bold mb-2">כותרת: {exercise.title}</p>
+                          <p className="mb-2 text-md" dangerouslySetInnerHTML={{ __html: formatText(`תיאור: ${exercise.explanation}`) }}></p>
+                          <p className="mb-2 text-md"><strong>וידאו:</strong> <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">וידאו</a></p>
+                          <p className="mb-2 text-md"><strong>מותאם לגיל השלישי:</strong> {exercise.adaptedForThirdAge ? 'כן' : 'לא'}</p>
+                          <p className="mb-2 text-md"><strong>מותאם לילדים:</strong> {exercise.adaptedForChildren ? 'כן' : 'לא'}</p>
+                          <p className="mb-2 text-md"><strong>משך כולל:</strong> {exercise.duration} דקות</p>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">כותרת</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">הסבר</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">וידאו</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">דירוג</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Like</th>
-                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Dislike</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
-                        {plan.exercises.map((exercise, exerciseIndex) => {
-                          const userRating = exercise.userRating || exercise.avgRating;
-                          const hoverRating = hoverRatings[exercise._id] || userRating;
-                          return (
+                    <div className="md:hidden">
+                      {plan.exercises.map((exercise, exerciseIndex) => {
+                        const userRating = exercise.userRating || 0;
+                        const hoverRating = hoverRatings[exercise._id] || userRating;
+                        return (
+                          <div key={exerciseIndex} className="mobile-item mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                            <p className="mobile-title text-lg font-bold mb-2">כותרת: {exercise.title}</p>
+                            <p className="mb-2 text-md" dangerouslySetInnerHTML={{ __html: formatText(`תיאור: ${exercise.explanation}`) }}></p>
+                            <p className="mb-2 text-md"><strong>וידאו:</strong> <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">וידאו</a></p>
+                            <p className="mb-2 text-md"><strong>דירוג:</strong>
+                              <div className="flex items-center">
+                                {[...Array(5)].map((_, i) => (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    className={`text-2xl ${i + 1 <= hoverRating ? "text-yellow-500" : "text-gray-300"}`}
+                                    onClick={() => updateRating(exercise._id, exercise.postId, i + 1)}
+                                    onMouseEnter={() => setHoverRatings(prev => ({ ...prev, [exercise._id]: i + 1 }))}
+                                    onMouseLeave={() => setHoverRatings(prev => ({ ...prev, [exercise._id]: null }))}
+                                  >
+                                    &#9733;
+                                  </button>
+                                ))}
+                              </div>
+                            </p>
+                            <div className="flex justify-between mb-2">
+                              <button
+                                onClick={() => handleLike(exercise._id, exercise.postId, plan._id)}
+                                className={`text-2xl transform transition-transform duration-200${exercise.liked ? "text-blue-500 scale-150" : "text-gray-300"}`}
+                                onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                                onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                              >
+                                &#128077;
+                              </button>
+                              <button
+                                onClick={() => handleDislike(exercise._id, exercise.postId, plan._id)}
+                                className={`text-2xl transform transition-transform duration-200${exercise.disliked ? "text-red-500 scale-150" : "text-gray-300"}`}
+                                onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                                onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                              >
+                                &#128078;
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div className="hidden md:block overflow-auto">
+                    {activeTabs[group._id]?.[plan._id] === 'exercises' ? (
+                      <table dir='rtl' className="min-w-full divide-y divide-gray-200 table-fixed">
+                        <thead>
+                          <tr>
+                            <th className="w-1/5 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">כותרת</th>
+                            <th className="w-2/6 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">הסבר</th>
+                            <th className="w-1/6 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">וידאו</th>
+                            <th className="w-1/6 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">סטים / חזרות</th>
+                            <th className="w-1/6 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">מותאם למבוגרים</th>
+                            <th className="w-1/6 whitespace-nowrap px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">מותאם לילדים</th>
+                            <th className="w-1/6 whitespace-nowrap px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">זמן ביצוע</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                          {plan.exercises.map((exercise, exerciseIndex) => (
                             <tr key={exerciseIndex}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{exercise.title}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
-                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{exercise.title}</td>
+                              <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-center">
                                 {exercise.videoUrl && (
                                   <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
                                     תרגיל
                                   </a>
                                 )}
                               </td>
-                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                <div className="flex items-center">
-                                  {currentUser && (
-                                    <div className="ml-2 flex">
-                                      {[...Array(5)].map((_, i) => (
-                                        <button
-                                          key={i}
-                                          type="button"
-                                          className={`text-2xl ${i + 1 <= hoverRating ? "text-yellow-500" : "text-gray-300"}`}
-                                          onClick={() => updateRating(exercise._id, exercise.postId, i + 1)}
-                                          onMouseEnter={() => setHoverRatings(prev => ({ ...prev, [exercise._id]: i + 1 }))}
-                                          onMouseLeave={() => setHoverRatings(prev => ({ ...prev, [exercise._id]: null }))}
-                                        >
-                                          &#9733;
-                                        </button>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                <button
-                                  onClick={() => handleLike(exercise._id, exercise.postId, plan._id)}
-                                  className={`text-2xl transform transition-transform duration-200${exercise.liked ? "text-blue-500 scale-150" : "text-gray-300"}`}
-                                  onMouseEnter={(e) => e.target.classList.add("scale-110")}
-                                  onMouseLeave={(e) => e.target.classList.remove("scale-110")}
-                                >
-                                  &#128077;
-                                </button>
-                              </td>
-                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                <button
-                                  onClick={() => handleDislike(exercise._id, exercise.postId, plan._id)}
-                                  className={`text-2xl transform transition-transform duration-200${exercise.disliked ? "text-red-500 scale-150" : "text-gray-300"}`}
-                                  onMouseEnter={(e) => e.target.classList.add("scale-110")}
-                                  onMouseLeave={(e) => e.target.classList.remove("scale-110")}
-                                >
-                                  &#128078;
-                                </button>
-                              </td>
+                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ">סטים: {exercise.sets} / חזרות: {exercise.turns}</td>
+                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForThirdAge ? 'כן' : 'לא'}</td>
+                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.adaptedForChildren ? 'כן' : 'לא'}</td>
+                              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{exercise.duration} דקות</td>
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <table className="min-w-full divide-y divide-gray-200 table-fixed">
+                        <thead>
+                          <tr>
+                            <th className="w-1/5 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">כותרת</th>
+                            <th className="w-2/6 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">הסבר</th>
+                            <th className="w-1/6 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">וידאו</th>
+                            <th className="w-1/6  px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">דירוג</th>
+                            <th className="w-1/6  px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Like</th>
+                            <th className="w-1/6  px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Dislike</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                          {plan.exercises.map((exercise, exerciseIndex) => {
+                            const userRating = exercise.userRating || 0;
+                            const hoverRating = hoverRatings[exercise._id] || userRating;
+                            return (
+                              <tr key={exerciseIndex}>
+                                <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{exercise.title}</td>
+                                <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400" dangerouslySetInnerHTML={{ __html: exercise.explanation }}></td>
+                                <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                  {exercise.videoUrl && (
+                                    <a href={exercise.videoUrl} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
+                                      תרגיל
+                                    </a>
+                                  )}
+                                </td>
+                                <td dir="ltr" className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                  <div className="flex items-center">
+                                    {currentUser && (
+                                      <div className="ml-2 flex">
+                                        {[...Array(5)].map((_, i) => (
+                                          <button
+                                            key={i}
+                                            type="button"
+                                            className={`text-2xl ${i + 1 <= hoverRating ? "text-yellow-500" : "text-gray-300"}`}
+                                            onClick={() => updateRating(exercise._id, exercise.postId, i + 1)}
+                                            onMouseEnter={() => setHoverRatings(prev => ({ ...prev, [exercise._id]: i + 1 }))}
+                                            onMouseLeave={() => setHoverRatings(prev => ({ ...prev, [exercise._id]: null }))}
+                                          >
+                                            &#9733;
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className=" px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                  <button
+                                    onClick={() => handleLike(exercise._id, exercise.postId, plan._id)}
+                                    className={`text-2xl transform transition-transform duration-200${exercise.liked ? "text-blue-500 scale-150" : "text-gray-300"}`}
+                                    onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                                    onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                                  >
+                                    &#128077;
+                                  </button>
+                                </td>
+                                <td className=" px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                  <button
+                                    onClick={() => handleDislike(exercise._id, exercise.postId, plan._id)}
+                                    className={`text-2xl transform transition-transform duration-200${exercise.disliked ? "text-red-500 scale-150" : "text-gray-300"}`}
+                                    onMouseEnter={(e) => e.target.classList.add("scale-110")}
+                                    onMouseLeave={(e) => e.target.classList.remove("scale-110")}
+                                  >
+                                    &#128078;
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
