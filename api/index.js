@@ -141,13 +141,6 @@ app.post('/webhook', express.json(), authMiddleware, async (req, res) => {
   }
 });
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../front/build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../front/build', 'index.html'));
-});
-
 app.listen(process.env.PORT || 8800, () => {
   console.log(`Server running on port ${process.env.PORT || 8800}`);
 });
