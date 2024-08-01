@@ -6,6 +6,7 @@ export const useApi = () => useContext(ApiContext);
 export const ApiProvider = ({ children }) => {
   let apiUrl = '';
       apiUrl = 'https://movementor-fyyf.onrender.com';
+      // apiUrl = 'http://localhost:8800';
       
 
   return (
