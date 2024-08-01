@@ -32,7 +32,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(cors({
-  origin: "*",
+  origin: ['http://localhost:3000', 'https://movementor-fyyf.onrender.com','https://movementor-1.onrender.com' , 'https://movementor.onrender.com'], // Allow your frontend URL
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }));
