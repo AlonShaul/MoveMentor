@@ -1,9 +1,10 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import multer from 'multer';
-import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,8 +18,13 @@ import { generatePlan } from './controllers/plan.js';
 import pkg from 'uuid';
 const { v4: uuidv4 } = pkg;
 import { SessionsClient } from '@google-cloud/dialogflow';
+import schedule from 'node-schedule';
+import { sendWeeklyEmail } from './controllers/user.js';
 
-dotenv.config();
+// תזמון שליחת המיילים - כל יום ראשון בשעה 10:00 בבוקר
+const job = schedule.scheduleJob('0 10 * * 0', function(){
+  sendWeeklyEmail();
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,8 +94,8 @@ app.post('/webhook', express.json(), authMiddleware, async (req, res) => {
     }
 
     const agent = new WebhookClient({ request: req, response: res });
-    console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
-    console.log('Dialogflow Request body: ' + JSON.stringify(request.body));
+    console.log('Dialogflow Request headers: ' + JSON.stringify(req.headers));
+    console.log('Dialogflow Request body: ' + JSON.stringify(req.body));
 
     function welcome(agent) {
       agent.add(`Welcome to my agent!`);
