@@ -18,13 +18,18 @@ import { generatePlan } from './controllers/plan.js';
 import pkg from 'uuid';
 const { v4: uuidv4 } = pkg;
 import { SessionsClient } from '@google-cloud/dialogflow';
-import schedule from 'node-schedule';
+import schedule from 'node-schedule'; // רק פעם אחת
+import moment from 'moment-timezone'; // ייבוא נכון של moment-timezone
 import { sendWeeklyEmail } from './controllers/user.js';
 
-// תזמון שליחת המיילים - כל יום ראשון בשעה 10:00 בבוקר
-const job = schedule.scheduleJob('0 10 * * 0', function(){
+// הגדרת המשימה המתוזמנת
+const job = schedule.scheduleJob('00 10 * * 0', function(){
+  const now = moment().tz("Asia/Jerusalem");
+  console.log(`Sending email at ${now.format()}`);
   sendWeeklyEmail();
 });
+
+console.log(job.nextInvocation()); // מראה את הזמן הבא שהמשימה תופעל
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
