@@ -22,18 +22,18 @@ MoveMentor is a full-stack web application designed to assist individuals in the
 
 ## Technologies Used
 
-<p align="left">
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt="React" width="40" height="40"/>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" alt="Node.js" width="40" height="40"/>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg" alt="MongoDB" width="40" height="40"/>
-  <img src="https://URL_TO_TAILWIND_IMAGE" alt="Tailwind" width="40" height="40"/>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML" width="40" height="40"/>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS" width="40" height="40"/>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript" width="40" height="40"/>
-  <img src="https://URL_TO_CHART_JS_IMAGE" alt="Chart.js" width="40" height="40"/>
-  <img src="https://URL_TO_SENDGRID_IMAGE" alt="SendGrid" width="40" height="40"/>
-  <img src="https://URL_TO_RENDER_IMAGE" alt="Render" width="40" height="40"/>
-</p>
+<div align="center">
+  <img src="https://img.icons8.com/color/48/000000/react-native.png" alt="React" width="50px"/>
+  <img src="https://img.icons8.com/color/48/000000/nodejs.png" alt="Node.js" width="50px"/>
+  <img src="https://img.icons8.com/color/48/000000/mongodb.png" alt="MongoDB" width="50px"/>
+  <img src="https://img.icons8.com/color/48/000000/tailwindcss.png" alt="TailwindCSS" width="50px"/>
+  <img src="https://img.icons8.com/color/48/000000/html-5--v1.png" alt="HTML" width="50px"/>
+  <img src="https://img.icons8.com/color/48/000000/css3.png" alt="CSS" width="50px"/>
+  <img src="https://img.icons8.com/color/48/000000/javascript--v1.png" alt="JavaScript" width="50px"/>
+  <img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/48/000000/external-chartjs-data-visualization-library-for-javascript-logo-shadow-tal-revivo.png" alt="Chart.js" width="50px"/>
+  <img src="https://img.icons8.com/external-tal-revivo-color-tal-revivo/48/000000/external-sendgrid-twilio-an-email-marketing-communication-platform-logo-color-tal-revivo.png" alt="SendGrid" width="50px"/>
+  <img src="https://img.icons8.com/ios-filled/50/000000/render.png" alt="Render" width="50px"/>
+</div>
 
 ## Getting Started
 
