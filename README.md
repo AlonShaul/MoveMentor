@@ -26,13 +26,13 @@ MoveMentor is a full-stack web application designed to assist individuals in the
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt="React" width="40" height="40"/>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" alt="Node.js" width="40" height="40"/>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg" alt="MongoDB" width="40" height="40"/>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg" alt="Tailwind" width="40" height="40"/>
+  <img src="https://URL_TO_TAILWIND_IMAGE" alt="Tailwind" width="40" height="40"/>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML" width="40" height="40"/>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS" width="40" height="40"/>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript" width="40" height="40"/>
-  <img src="URL_TO_CHART_JS_IMAGE" alt="Chart.js" width="40" height="40"/>
-  <img src="URL_TO_SENDGRID_IMAGE" alt="SendGrid" width="40" height="40"/>
-  <img src="URL_TO_RENDER_IMAGE" alt="Render" width="40" height="40"/>
+  <img src="https://URL_TO_CHART_JS_IMAGE" alt="Chart.js" width="40" height="40"/>
+  <img src="https://URL_TO_SENDGRID_IMAGE" alt="SendGrid" width="40" height="40"/>
+  <img src="https://URL_TO_RENDER_IMAGE" alt="Render" width="40" height="40"/>
 </p>
 
 ## Getting Started
