@@ -30,7 +30,7 @@ MoveMentor is a full-stack web application designed to assist individuals in the
   <img src="https://img.icons8.com/color/48/000000/html-5--v1.png" alt="HTML" width="50px"/>
   <img src="https://img.icons8.com/color/48/000000/css3.png" alt="CSS" width="50px"/>
   <img src="https://img.icons8.com/color/48/000000/javascript--v1.png" alt="JavaScript" width="50px"/>
-  <img src="[https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/48/000000/external-chartjs-data-visualization-library-for-javascript-logo-shadow-tal-revivo.png](https://www.google.co.il/url?sa=i&url=https%3A%2F%2Fseeklogo.com%2Fvector-logo%2F496478%2Fchart-js&psig=AOvVaw3oJW6QodBFrTzYLcd9nLhW&ust=1724072270613000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCPj9gevL_ocDFQAAAAAdAAAAABAb)"alt="Chart.js" width="50px"/>
+  <img src="https://seeklogo.com/images/C/chart-js-logo-BB0E7C3308-seeklogo.com.png" alt="Chart.js" width="50px"/>
   <img src="https://img.icons8.com/external-tal-revivo-color-tal-revivo/48/000000/external-sendgrid-twilio-an-email-marketing-communication-platform-logo-color-tal-revivo.png" alt="SendGrid" width="50px"/>
   <img src="https://img.icons8.com/ios-filled/50/000000/render.png" alt="Render" width="50px"/>
 </div>
