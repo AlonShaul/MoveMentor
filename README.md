@@ -75,9 +75,21 @@ To run this project locally, you’ll need the following installed:
 
 Here are some screenshots of the MoveMentor system:
 
-| ![Login](https://res.cloudinary.com/dd25naa0y/image/upload/v1723983869/ee6f0b17-02ac-480e-b82b-2c9804ff2e63.png) | ![Register](https://res.cloudinary.com/dd25naa0y/image/upload/v1723983993/4f9e9665-a48e-4034-bdde-4ab9d65356d2.png) | ![Home Page](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984019/51ffa86a-1106-4c53-bcdd-2937bbd3d993.png) | ![Knee Category](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984042/4c1d980d-198a-42c6-91f6-202dc49b52db.png) | ![Knee Exercise](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984048/02595c19-1b45-4d82-8d6a-600bc700b51e.png) | ![ChatBot](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984054/66806c62-6a2a-492c-a3bc-635a168dd175.png) | ![DashBoard](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984064/6d8bf3dc-0a69-44d6-9174-0c08483786b7.png) | ![UserProfilePlan](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984070/9edb00c2-73e4-491d-8611-aa8bf8443686.png) | ![Create Exercise](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984073/803bc79b-15af-40ea-8617-c53502829789.png) |
+## Screenshots
+
+Here are some screenshots of the MoveMentor system:
+
+| ![Login](https://res.cloudinary.com/dd25naa0y/image/upload/v1723983869/ee6f0b17-02ac-480e-b82b-2c9804ff2e63.png) | ![Register](https://res.cloudinary.com/dd25naa0y/image/upload/v1723983993/4f9e9665-a48e-4034-bdde-4ab9d65356d2.png) | ![Home Page](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984019/51ffa86a-1106-4c53-bcdd-2937bbd3d993.png) |
 |:--:|:--:|:--:|
-| Login | Register | Home Page | Knee Category | Knee Exercise | ChatBot | DashBoard | UserProfilePlan | Create Exercise |
+| **Login** | **Register** | **Home Page** |
+
+| ![Knee Category](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984042/4c1d980d-198a-42c6-91f6-202dc49b52db.png) | ![Knee Exercise](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984048/02595c19-1b45-4d82-8d6a-600bc700b51e.png) | ![ChatBot](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984054/66806c62-6a2a-492c-a3bc-635a168dd175.png) |
+|:--:|:--:|:--:|
+| **Knee Category** | **Knee Exercise** | **ChatBot** |
+
+| ![DashBoard](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984064/6d8bf3dc-0a69-44d6-9174-0c08483786b7.png) | ![UserProfilePlan](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984070/9edb00c2-73e4-491d-8611-aa8bf8443686.png) | ![Create Exercise](https://res.cloudinary.com/dd25naa0y/image/upload/v1723984073/803bc79b-15af-40ea-8617-c53502829789.png) |
+|:--:|:--:|:--:|
+| **Dashboard** | **User Profile Plan** | **Create Exercise** |
 
 ## Conclusion
 MoveMentor leverages modern technology to simplify and enhance the rehabilitation process, offering users personalized plans, real-time feedback, and detailed progress tracking. It is designed to improve recovery outcomes while minimizing the burden on therapists and professionals.
