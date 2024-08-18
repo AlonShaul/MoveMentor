@@ -31,8 +31,8 @@ MoveMentor is a full-stack web application designed to assist individuals in the
   <img src="https://img.icons8.com/color/48/000000/css3.png" alt="CSS" width="50px"/>
   <img src="https://img.icons8.com/color/48/000000/javascript--v1.png" alt="JavaScript" width="50px"/>
   <img src="https://seeklogo.com/images/C/chart-js-logo-BB0E7C3308-seeklogo.com.png" alt="Chart.js" width="50px"/>
-  <img src="https://img.icons8.com/external-tal-revivo-color-tal-revivo/48/000000/external-sendgrid-twilio-an-email-marketing-communication-platform-logo-color-tal-revivo.png" alt="SendGrid" width="50px"/>
-  <img src="https://img.icons8.com/ios-filled/50/000000/render.png" alt="Render" width="50px"/>
+  <img src="https://banner2.cleanpng.com/20180430/itw/avdirualb.webp" alt="SendGrid" width="50px"/>
+  <img src="https://res.cloudinary.com/dd25naa0y/image/upload/v1723986144/90187833-ceaf-4e74-a570-a4ffe9f06b57.png" alt="Render" width="50px"/>
 </div>
 
 ## Getting Started
