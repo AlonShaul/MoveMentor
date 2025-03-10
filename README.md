@@ -30,7 +30,7 @@ MoveMentor is a full-stack web application designed to assist individuals in the
   <img src="https://img.icons8.com/color/48/000000/html-5--v1.png" alt="HTML" width="50px"/>
   <img src="https://img.icons8.com/color/48/000000/css3.png" alt="CSS" width="50px"/>
   <img src="https://img.icons8.com/color/48/000000/javascript--v1.png" alt="JavaScript" width="50px"/>
-  <img src="[[https://seeklogo.com/images/C/chart-js-logo-BB0E7C3308-seeklogo.com.png](https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Chart.js_logo.svg/1200px-Chart.js_logo.svg.png)](https://cdn.prod.website-files.com/5e74e26367ec77e6b78a23c1/5f719a2ee96c96b8ce9a58d3_chartjs.png)" alt="Chart.js" width="50px"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Chart.js_logo.svg/1200px-Chart.js_logo.svg.png" alt="Chart.js" width="50px"/>
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/SendGrid_2016_Logo.png/1200px-SendGrid_2016_Logo.png" alt="SendGrid" width="120px"/>
   <img src="https://res.cloudinary.com/dd25naa0y/image/upload/v1723986144/90187833-ceaf-4e74-a570-a4ffe9f06b57.png" alt="Render" width="120px"/>
 </div>
